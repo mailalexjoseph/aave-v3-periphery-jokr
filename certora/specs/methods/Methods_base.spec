@@ -3,6 +3,7 @@ import "./ERC20_methods.spec";
 using DummyERC20_AToken as AToken;
 
 methods {
+    // 
     function getAssetRewardIndex(address, address) external returns (uint256) envfree;
     function getRewardsData(address, address) external returns (uint256, uint256, uint256, uint256) envfree;
     function getUserAssetIndex(address, address, address) external returns (uint256) envfree;

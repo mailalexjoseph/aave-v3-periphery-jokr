@@ -1,6 +1,10 @@
 import "methods/Methods_base.spec";
 
-// index mono increase
+
+// check this rule for every change in setup to make sure all is reachable 
+// use builtin rule sanity;
+
+// Reward index monotonically increase
 rule index_keeps_growing(address asset, address reward) {
     uint256 _index = getAssetRewardIndex(asset, reward);
 
@@ -12,12 +16,9 @@ rule index_keeps_growing(address asset, address reward) {
     assert index_ >= _index;
 }
 
-
+// User index cannot surpass reward index
 invariant user_index_LEQ_index(address asset, address reward, address user)
     getUserAssetIndex(user, asset, reward) <= getAssetRewardIndex(asset, reward);
-
-// check this rule for every change in setup to make sure all is reachable 
-use builtin rule sanity;
 
 
 /* 
