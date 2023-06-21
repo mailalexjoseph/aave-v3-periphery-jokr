@@ -1,61 +1,57 @@
 import "methods/Methods_base.spec";
 
+///////////////// Properties ///////////////////////
 
-// check this rule for every change in setup to make sure all is reachable 
-// use builtin rule sanity;
+    // Property: Reward index monotonically increase
+    rule index_keeps_growing(address asset, address reward, method f) filtered { f -> !f.isView } {
+        uint256 _index = getAssetRewardIndex(asset, reward);
 
-// Reward index monotonically increase
-rule index_keeps_growing(address asset, address reward) {
-    uint256 _index = getAssetRewardIndex(asset, reward);
+        env e; calldataarg args;
+        f(e, args);
 
-    method f; env e; calldataarg args;
-    f(e, args);
+        uint256 index_ = getAssetRewardIndex(asset, reward);
+        
+        assert index_ >= _index;
+    }
 
-    uint256 index_ = getAssetRewardIndex(asset, reward);
-    
-    assert index_ >= _index;
-}
-
-// User index cannot surpass reward index
-invariant user_index_LEQ_index(address asset, address reward, address user)
-    getUserAssetIndex(user, asset, reward) <= getAssetRewardIndex(asset, reward);
+    // Property: User index cannot surpass reward index
+    invariant user_index_LEQ_index(address asset, address reward, address user)
+        getUserAssetIndex(user, asset, reward) <= getAssetRewardIndex(asset, reward);
 
 
-/* 
-    Property: claiming reward twice is equivalent to one claim reward 
+    // check this rule for every change in setup to make sure all is reachable 
+    // use builtin rule sanity;
 
-    Note : this rule is implemented by comparing the whole storage 
+    //  Property: claiming reward twice is equivalent to one claim reward 
+    //  Note : this rule is implemented by comparing the whole storage 
+    rule noDoubleClaim() {
 
-*/
+        env e; 
+        //arbitrary array of any length (might be constrained due to loop unrolling )
+        address[] assets; 
+        uint256 l = assets.length;
+        address to;
+        claimAllRewards(e, assets, to);
+        storage afterFirst = lastStorage;
+        claimAllRewards(e, assets, to);
+        storage afterSecond = lastStorage;
 
+        assert afterSecond == afterFirst;
+    }
 
-rule noDoubleClaim() {
+    // Property: only an authorized user or the user itself can cause a reduction in accrued rewards for this user
+    rule onlyAuthorizeCanDecrease(method f) filtered { f -> !f.isView } {
 
-    env e; 
-    //arbitrary array of any length (might be constrained due to loop unrolling )
-    address[] assets; 
-    uint256 l = assets.length;
-    address to;
-    claimAllRewards(e, assets, to);
-    storage afterFirst = lastStorage;
-    claimAllRewards(e, assets, to);
-    storage afterSecond = lastStorage;
+        address user; address reward;
+        uint256 before = getUserAccruedRewards(user, reward);
 
-    assert afterSecond == afterFirst;
-}
+        env e;
+        calldataarg args;
+        f(e,args);
 
-rule onlyAuthorizeCanDecrease(method f) {
+        uint256 after = getUserAccruedRewards(user, reward);
 
-    address user; address reward;
-    uint256 before = getUserAccruedRewards(user, reward);
-
-    env e;
-    calldataarg args;
-    f(e,args);
-
-    uint256 after = getUserAccruedRewards(user, reward);
-
-    assert after < before => getClaimer(user) == e.msg.sender; 
-}
+        assert after < before => (getClaimer(user) == e.msg.sender || user == e.msg.sender);
+    }
 
 
