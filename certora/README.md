@@ -7,4 +7,4 @@ use default.conf as a starting point. It is a simpler configuration and should b
 
 verifyRewardsController.conf should be used to check for better coverage. it contains:
 1. more loop unrolling
-2. more erc20 and  multi-reward token |(?) 
+2. more erc20 and multi-reward token |(?) 
