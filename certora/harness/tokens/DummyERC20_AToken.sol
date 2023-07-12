@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {IncentivizedERC20} from "@aave/core-v3/contracts/protocol/tokenization/base/IncentivizedERC20.sol";
+import {MintableIncentivizedERC20} from "@aave/core-v3/contracts/protocol/tokenization/base/MintableIncentivizedERC20.sol";
 import {IPool} from '@aave/core-v3/contracts/interfaces/IPool.sol';
 
-contract DummyERC20_AToken is IncentivizedERC20 {
+contract DummyERC20_AToken is MintableIncentivizedERC20 {
     
       constructor(
     IPool pool,
     string memory name,
     string memory symbol,
     uint8 decimals
-  ) IncentivizedERC20(pool, name, symbol, decimals) {
+  ) MintableIncentivizedERC20(pool, name, symbol, decimals) {
     // Intentionally left blank
   }
 
@@ -25,5 +25,13 @@ contract DummyERC20_AToken is IncentivizedERC20 {
 
     function getScaledUserBalanceAndSupply(address account) public view returns (uint256, uint256){
         return (scaledBalanceOf(account), scaledTotalSupply());
+    }
+
+    function mint(address account, uint128 amount) external {
+        _mint(account, amount);
+    }
+
+    function burn(address account, uint128 amount) external {
+        _burn(account, amount);
     }
 }
