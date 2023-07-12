@@ -2,11 +2,8 @@
 pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
-import {TransferStrategyBase} from '../../../contracts/rewards/transfer-strategies/TransferStrategyBase.sol';
 
-contract TransferStrategyHarness is TransferStrategyBase{
-
-constructor(address incentivesController, address rewardsAdmin) TransferStrategyBase(incentivesController, rewardsAdmin) {}
+contract TransferStrategyHarness {
 
     IERC20 public REWARD;
 
@@ -16,7 +13,7 @@ constructor(address incentivesController, address rewardsAdmin) TransferStrategy
         address to,
         address reward,
         uint256 amount
-    ) external override(TransferStrategyBase) returns (bool){
+    ) external returns (bool){
         require(reward == address(REWARD));
         return REWARD.transfer(to, amount);
     }

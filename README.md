@@ -23,6 +23,7 @@ Please note that this is a formal verification contest; the goal of the contest 
 An overview of the rewards distributor and it's place in the Aave ecosystem can be found in:
 1. [Docs on how to incentivize tokens on Aave](https://docs.aave.com/developers/guides/governance-guide/rewards).
 2. [The contract's documentation](https://docs.aave.com/developers/periphery-contracts/rewardscontroller).
+3. [Readme of the repository](./info.md)
 
 This challenge is about using the Certora prover to formally verify properties in the Solidity smart contract `contracts/rewards/RewardsController.sol`. 
 
@@ -32,7 +33,7 @@ We will introduce several bugs in the smart contract, some of which are publicly
 
 | Contract | SLOC | Purpose | Libraries used |  
 | ----------- | ----------- | ----------- | ----------- |
-|[src/RewardsController.sol]https://github.com/Certora/aave-v3-periphery)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
+|[src/RewardsController.sol](https://github.com/Certora/aave-v3-periphery)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
 
 # Additional Context
 
@@ -193,6 +194,9 @@ Make sure to grant read access to the judges `mailalexjoseph`, `tomerganor`, `nd
 Add a repository secret to your repo named `CERTORAKEY` with the key that will be emailed to you once you sign up through Certora (link is in the contest details above).
 
 The forked repository will contain a `certora-contest` directory that consists of 4 sub-directories - `harnesses`, `conf`, `tests` and `specs`. These should contain the entire preliminary setup to allow you to start writing rules. Each sub-directory contains a different component of the verification project and may contain additional sub-directories to maintain organization. Try to keep a similar structure when adding new files.
+
+### Setting Up The Project
+In order to compile the contracts you'll need to install some packages using npm. Follow [info.md](./info.md)'s "Getting started" section for instructions.
 
 ## Participation 
 
