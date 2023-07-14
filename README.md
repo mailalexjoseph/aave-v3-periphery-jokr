@@ -33,7 +33,7 @@ We will introduce several bugs in the smart contract, some of which are publicly
 
 | Contract | SLOC | Purpose | Libraries used |  
 | ----------- | ----------- | ----------- | ----------- |
-|[src/RewardsController.sol](https://github.com/Certora/aave-v3-periphery)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
+|[src/RewardsController.sol](https://github.com/Certora/aave-v3-periphery/blob/master/contracts/rewards/RewardsController.sol)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
 
 # Additional Context
 
