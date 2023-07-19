@@ -1,7 +1,6 @@
 default: help
 
-CONTRACTS_DIR = ../src
-LIBS_DIR = ../lib
+CONTRACTS_DIR = ../contracts/rewards
 
 help:
 	@echo "usage:"

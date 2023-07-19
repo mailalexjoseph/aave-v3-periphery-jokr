@@ -229,9 +229,9 @@ In the certora/conf directory, you will find conf file(s) that contains examples
 
 ## Submission
 
-At the end of the contest, open a pull request within your repository from the `certora-contest` branch to the `main` branch. Upon opening the PR, the CI will be triggered, running your spec against the publicly available injected bugs. **Make sure to add a `CERTORAKEY` as a repository action secret.** Also ensure that none of your run scripts have a `--send_only` flag.
+At the end of the contest, open a pull request within your repository from the `certora` branch to the `main` branch. Upon opening the PR, the CI will be triggered, running your spec against the publicly available injected bugs. **Make sure to add a `CERTORAKEY` as a repository action secret.** Also ensure that none of your run scripts have a `--send_only` flag.
 
-A short time after the deadline, Certora will update the `certora-contest` branch in the public repository with the additional non-released bugs. You will need to pull these changes to your repository. The CI will again be triggered and the result of the CI for these new jobs will be evaluated by the judges. If any additional changes need to be made once the discrete injected bugs are made public, please contact us first for permission. **Any changes made after the update without contacting Certora will result in disqualification.**
+A short time after the deadline, Certora will update the `certora` branch in the public repository with the additional non-released bugs. You will need to pull these changes to your repository. The CI will again be triggered and the result of the CI for these new jobs will be evaluated by the judges. If any additional changes need to be made once the discrete injected bugs are made public, please contact us first for permission. **Any changes made after the update without contacting Certora will result in disqualification.**
 
 ## Reporting Real Bugs
 After finding a potential bug/unintended behaviour of the contract with the Certora Prover, open a GitHub issue on your repository that explains the potential problem. Follow the guidelines below when creating a GitHub issue:
