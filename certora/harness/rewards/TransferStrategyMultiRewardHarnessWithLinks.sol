@@ -3,7 +3,7 @@ pragma solidity ^0.8.10;
 
 import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 
-contract TransferStrategyMultiRewardHarness {
+contract TransferStrategyMultiRewardHarnessWithLinks {
 
     IERC20 public REWARD;
     IERC20 public REWARD_B;
