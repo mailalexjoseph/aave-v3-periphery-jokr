@@ -20,6 +20,10 @@ contract RewardsControllerHarness is RewardsController {
     function getAvailableRewardsCount(address asset) external view returns (uint256) {
         return uint256(_assets[asset].availableRewardsCount);
     }
+    
+    function getRewardListLength() external view returns (uint256) {
+        return _rewardsList.length;
+    }
 
     function getUserAccruedRewards(address user,address asset, address reward) external view returns (uint256) {
         return _assets[asset].rewards[reward].usersData[user].accrued;  
@@ -67,7 +71,5 @@ contract RewardsControllerHarness is RewardsController {
         uint256 userIndex = _assets[asset].rewards[reward].usersData[user].index;
         return _getRewards(userBalance, newAssetIndex, userIndex, assetUnit);
     }
-
-    
 
 }

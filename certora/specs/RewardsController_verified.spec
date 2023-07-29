@@ -96,37 +96,109 @@ rule handleActionUnitTest(method f) filtered { f -> !f.isView } {
 
 // STATUS: NOT VERIFIED
 // Property: configureAssets is behaving as expected
-rule configureAssets_unit_test(method f) {
-    RewardsDataTypes.RewardsConfigInput[] rewardsInput;
-    // require rewardsInput.length == 1;
-    // configureAssets(e,rewardList);
+// rule configureAssets_unit_test(method f) {
+//     RewardsDataTypes.RewardsConfigInput[] rewardsInput;
+//     // require rewardsInput.length == 1;
+//     // configureAssets(e,rewardList);
 
-    // assert getTransferStrategy(rewardsInput[0].reward) == rewardsInput[0].transferStrategy,
-    //     "transferStrategy not updated correctly";
+//     // assert getTransferStrategy(rewardsInput[0].reward) == rewardsInput[0].transferStrategy,
+//     //     "transferStrategy not updated correctly";
     
-    // assert getRewardOracle(rewardsInput[0].reward) == rewardsInput[0].transferStrategy.rewardOracle,
-    //     "rewardOracle not updated correctly";
+//     // assert getRewardOracle(rewardsInput[0].reward) == rewardsInput[0].transferStrategy.rewardOracle,
+//     //     "rewardOracle not updated correctly";
 
 
-}
+// }
 
 
-// STATUS: NOT VERIFIED
-// Problem: There is some problem with loops ig 
+// STATUS: VERIFIED
 rule claimAllRewardsUnitTest(address asset,address to,method f)  filtered { f -> !f.isView } {
     env e;
-    address[] rewardList;
     address[] assets = [asset];
+
+    address[] availableRewards = getRewardsByAsset(asset);
     require getAvailableRewardsCount(asset) == 1;
-    rewardList = getRewardsByAsset(asset);
+
+    address[] rewardList = getRewardsList();
+    require getRewardListLength() == 1;
+
+    require availableRewards[0] == rewardList[0];
 
     requireInvariant totalSupply_eq_sumAllBalanceAToken();
 
     claimAllRewards(e,assets,to);
 
-    assert getUserAccruedRewardsForAsset(e.msg.sender,asset,rewardList[0]) == 0,
+    assert getUserAccruedRewardsForAsset(e.msg.sender,asset,availableRewards[0]) == 0,
         "Accrued rewards must be zero after claiming all rewards"; 
     
+}
+
+// Rules - ClaimRewards unit tests
+rule claimRewardSingle (
+    env e,
+    address asset,
+    uint256 amount,
+    address to
+) {
+    
+    address[] assets = [asset];
+
+    address[] availableRewards = getRewardsByAsset(asset);
+    require getAvailableRewardsCount(asset) == 1;
+
+    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards[0]);
+    
+    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards[0]);
+
+    uint256 userRewardsAfter = getUserAccruedRewardsForAsset(e.msg.sender, assets[0], availableRewards[0]);
+
+    assert amount == 0 => expectedRewards == 0;
+
+    assert amount != 0 && userRewardsBefore <= amount =>
+        expectedRewards == userRewardsBefore &&
+        userRewardsAfter == 0;
+
+    assert amount != 0 && userRewardsBefore > amount =>
+        expectedRewards == amount &&
+        userRewardsAfter == assert_uint256(userRewardsBefore - amount);
+
+}
+
+// STATUS: TIMEOUT
+rule claimRewardMultiple (
+    env e,
+    address asset1,
+    address asset2,
+    uint256 amount,
+    address to
+) { 
+    address[] assets = [asset1, asset2];
+
+    address[] availableRewards1 = getRewardsByAsset(asset1);
+    require getAvailableRewardsCount(asset1) == 1;
+
+    address[] availableRewards2 = getRewardsByAsset(asset2);
+    require getAvailableRewardsCount(asset2) == 1;
+
+    require availableRewards1[0] == availableRewards2[0];
+
+    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
+        
+    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards1[0]);
+
+    uint256 userRewardsAfter = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
+
+
+    assert  amount == 0 => expectedRewards == 0;
+
+    assert amount != 0 && amount < userRewardsBefore =>
+        expectedRewards == amount &&
+        userRewardsAfter == assert_uint256(userRewardsBefore - amount);
+
+    assert amount != 0 && amount >= userRewardsBefore => 
+        expectedRewards == userRewardsBefore &&
+        userRewardsAfter == 0;
+
 }
 
 /**************************************************

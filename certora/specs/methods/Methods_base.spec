@@ -23,6 +23,8 @@ using DummyERC20_rewardToken as Reward;
         function getRewards(address user, address asset,address reward,uint256 userBalance,uint256 newAssetIndex) external returns(uint256) envfree;
         function getTransferStrategy(address reward) external returns (address) envfree;
         function getRewardOracle(address reward) external returns (address) envfree;
+        function getRewardsList() external returns (address[]) envfree;
+        function getRewardListLength() external returns (uint256) envfree;
         
          
         // AToken functions
