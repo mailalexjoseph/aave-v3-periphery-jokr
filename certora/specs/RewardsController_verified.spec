@@ -234,7 +234,7 @@ rule claimAllRewardsUnitTest(address asset,address to) {
     require getAvailableRewardsCount(asset) == 1;
 
     address[] rewardList = getRewardsList();
-    require getRewardListLength() == 1;
+    require getRewardsListLength() == 1;
 
     require availableRewards[0] == rewardList[0];
 
