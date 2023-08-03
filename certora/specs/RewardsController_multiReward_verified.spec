@@ -1,5 +1,5 @@
 import "methods/Methods_base.spec";
-// use invariant totalSupply_eq_sumAllBalanceAToken;
+use invariant totalSupply_eq_sumAllBalanceAToken;
 
 ///////////////// Properties ///////////////////////
 
