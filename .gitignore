@@ -22,3 +22,4 @@ coverage.json
 
 temp-artifacts
 contracts/hardhat-dependency-compiler
+.certora_internal

@@ -23,7 +23,13 @@ using DummyERC20_rewardToken as Reward;
         function getRewards(address user, address asset,address reward,uint256 userBalance,uint256 newAssetIndex) external returns(uint256) envfree;
         function getTransferStrategy(address reward) external returns (address) envfree;
         function getRewardOracle(address reward) external returns (address) envfree;
-        
+        function getEmissionPerSecond(address asset, address reward) external  returns(uint256) envfree;
+        function getEmissionManager() external  returns (address) envfree;
+        function getRewardsList() external returns(address[] memory) envfree;
+        function getRewardsListLength() external returns(uint256) envfree;
+        function getAssetsList() external returns (address[] memory) envfree;
+        function getAssetsListLength() external returns (uint256) envfree;
+
          
         // AToken functions
         function _.getScaledUserBalanceAndSupply(address) external => DISPATCHER(true);
@@ -59,5 +65,13 @@ hook Sstore AToken._userState[KEY address a].balance uint128 balance (uint128 ol
 hook Sload uint128 val AToken._userState[KEY address a].balance STORAGE {
    require sumAllBalanceAToken() >= to_mathint(val);
 }
+
+
+///////////////// INVARIANTS //////////////////////
+
+invariant totalSupply_eq_sumAllBalanceAToken()
+    to_mathint(AToken.totalSupply()) == sumAllBalanceAToken();
+
+
 
 
