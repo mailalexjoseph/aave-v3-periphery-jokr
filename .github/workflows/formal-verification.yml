@@ -3,7 +3,7 @@ name: certora-bug-injection
 on:
   pull_request:
     branches:
-      - main
+      - master
 
   workflow_dispatch:
 
