@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import {RewardsController} from '../../contracts/rewards/RewardsController.sol';
 import {RewardsDataTypes} from '../../contracts/rewards/libraries/RewardsDataTypes.sol';
 import {IScaledBalanceToken} from '@aave/core-v3/contracts/interfaces/IScaledBalanceToken.sol';
+import {IEACAggregatorProxy} from '../../contracts/misc/interfaces/IEACAggregatorProxy.sol';
 
 contract RewardsControllerHarness is RewardsController {
   constructor(address emissionManager) RewardsController(emissionManager) {}
@@ -109,4 +110,13 @@ contract RewardsControllerHarness is RewardsController {
   function getAssetsListLength() external view returns (uint256) {
     return _assetsList.length;
   }
+
+  function isContract(address account) external view returns (bool){
+    return _isContract(account);
+  }
+
+  function getLatestAnswer(address rewardOracle) external view returns (int256) {
+    return IEACAggregatorProxy(rewardOracle).latestAnswer();
+  }
+
 }

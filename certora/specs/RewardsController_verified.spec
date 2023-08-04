@@ -318,6 +318,22 @@ rule claimRewardMultiple (
 
 }
 
+rule setTransferStrategyUnitTest(address reward, address transferStrategy) {
+    setTransferStrategy(reward, transferStrategy);
+    assert getTransferStrategy(reward) == transferStrategy;
+}
+
+rule setRewardOracleUnitTest(address reward, address rewardOracle) {
+    setRewardOracle(reward, rewardOracle);
+    assert getRewardOracle(reward) == rewardOracle;
+}
+
+rule setClaimerUnitTest(address user, address caller) {
+    setClaimer(user, caller);
+    assert getClaimer(user) == caller;
+}
+
+
 /**************************************************
 *               REVERT CONDITIONS                 *
 **************************************************/
@@ -360,7 +376,19 @@ rule claimRewardsOnBehalf_should_revert(address[] assets, uint256 amount, addres
         "claimRewardsOnBehalf should revert when to address or user address is zero";
 } 
 
+rule setTransferStrategy_should_revert(address reward, address transferStrategy) {
+    setTransferStrategy@withrevert(reward, transferStrategy);
+    bool setTransferStrategyReverted = lastReverted;
+    assert transferStrategy == 0 || !isContract(transferStrategy) => setTransferStrategyReverted,
+        "transferStrategy should never be zero address";        
+}
 
+rule setRewardOracle_should_revert(address reward, address rewardOracle) {
+    setRewardOracle@withrevert(reward, rewardOracle);
+    bool setRewardOracleReverted = lastReverted;
+    assert getLatestAnswer(rewardOracle) <= 0 => setRewardOracleReverted,
+        "oracle must return price";
+}
 
 /**************************************************
 *                VARIABLE CHANGES                 *
