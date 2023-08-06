@@ -1,4 +1,5 @@
 import "methods/Methods_base.spec";
+<<<<<<< HEAD
 import "RewardsController_base.spec";
 use invariant totalSupply_eq_sumAllBalanceAToken;
 use invariant user_index_LEQ_index;
@@ -197,36 +198,35 @@ rule configureAssets_unit_test(
 // Property: configureAssets functions adds assets and rewards to the lists
 // https://prover.certora.com/output/547/c33eb8c226954f93b3baec82f83734e4?anonymousKey=367546d42a9ab3290c60f7873e52218d57d96ac4
 // also check that available rewards are increased for the assets are increased and rewardEnabled set to true for both reward   
-rule configureAssets_updates_assets_and_rewards_arrays(
-    RewardsDataTypes.RewardsConfigInput rewardInput1,
-    RewardsDataTypes.RewardsConfigInput rewardInput2
-) { 
-    env e;
-    // require getAssetsListLength()  == 0;
-    // require getRewardsListLength() == 0;
+// rule configureAssets_updates_assets_and_rewards_arrays(
+//     RewardsDataTypes.RewardsConfigInput rewardInput1,
+//     RewardsDataTypes.RewardsConfigInput rewardInput2
+// ) { 
+//     env e;
+//     // require getAssetsListLength()  == 0;
+//     // require getRewardsListLength() == 0;
 
-    // require rewardInput1.asset  != rewardInput2.asset;
-    // require rewardInput1.reward != rewardInput2.reward;
+//     // require rewardInput1.asset  != rewardInput2.asset;
+//     // require rewardInput1.reward != rewardInput2.reward;
 
-    configureAssetsHarness(e,rewardInput1,rewardInput2);
+//     configureAssetsHarness(e,rewardInput1,rewardInput2);
 
-    // address[] rewardList = getRewardsList();
-    // address[] assetList  = getAssetsList(); 
+//     // address[] rewardList = getRewardsList();
+//     // address[] assetList  = getAssetsList(); 
 
-    // assert rewardList[0] == rewardInput1.reward && rewardList[1] == rewardInput2.reward,
-    //     "new rewards are not pushed into rewardList array";
+//     // assert rewardList[0] == rewardInput1.reward && rewardList[1] == rewardInput2.reward,
+//     //     "new rewards are not pushed into rewardList array";
 
-    // assert assetList[0] == rewardInput1.asset && assetList[1] == rewardInput2.asset,
-    //     "new assets are not pushed into assetList array";
+//     // assert assetList[0] == rewardInput1.asset && assetList[1] == rewardInput2.asset,
+//     //     "new assets are not pushed into assetList array";
 
-    assert false;
+//     assert false;
 
-// 
-}
+// }
 
 
 // STATUS: VERIFIED
-rule claimAllRewardsUnitTest(address asset,address to) {
+rule claimAllRewards_unit_test(address asset,address to) {
     env e;
     address[] assets = [asset];
 
@@ -236,19 +236,85 @@ rule claimAllRewardsUnitTest(address asset,address to) {
     address[] rewardList = getRewardsList();
     require getRewardsListLength() == 1;
 
-    require availableRewards[0] == rewardList[0];
+    address reward = rewardList[0];
 
-    requireInvariant totalSupply_eq_sumAllBalanceAToken();
-    require getAvailableRewardsCount(asset) == 1;
-    require getRewardsListLength() == 1;
     require availableRewards[0] == rewardList[0];
+    require getAvailableRewardsCount(asset) == 1;
+    
+
+    uint256 rewards = getUserRewards(e,assets,e.msg.sender,reward);
+
+    address[] rewardListOutput ; uint256[] claimedAmounts;
+    rewardListOutput,claimedAmounts = claimAllRewards(e,assets,to);
+
+    uint256 accruedRewards_ = getUserAccruedRewardsForAsset(e.msg.sender,asset,reward);
+
+    assert accruedRewards_ == 0,
+        "Accrued rewards must be zero after claiming all rewards"; 
+    assert claimedAmounts[0] == rewards,
+        "Incorrect claimedAmounts";
+
+}
+
+// STATUS: VERIFIED 
+rule claimAllRewards_should_update_index_data(address asset,address to) {
+    env e;
+    address[] assets = [asset];
+
+    address[] availableRewards = getRewardsByAsset(asset);
+    require getAvailableRewardsCount(asset) == 1;
+
+    address[] rewardList = getRewardsList();
+    require getRewardsListLength() == 1;
+
+    address reward = rewardList[0];
+
+    require availableRewards[0] == rewardList[0];
+    require getAvailableRewardsCount(asset) == 1;
+    
+    uint256 oldIndex ; uint256 newIndex;
+    oldIndex,newIndex = getAssetIndex(e,asset,reward);
 
     claimAllRewards(e,assets,to);
 
-    assert getUserAccruedRewardsForAsset(e.msg.sender,asset,availableRewards[0]) == 0,
-        "Accrued rewards must be zero after claiming all rewards"; 
-    
+    assert getCurrentRewardIndex(asset,reward) == newIndex,
+        "Incorrect reward index update";
+    assert getUserAssetIndex(e.msg.sender,asset,reward) == newIndex,
+        "Incorrect user index update";
+    assert getlastUpdateTimestamp(asset,reward) == e.block.timestamp,
+        "Incorrect lastUpdateTimestamp";
 }
+
+// STATUS: VERIFIED
+// Property: ClaimAllRewards should increase the rewards balance of user
+rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
+    env e;
+    address[] assets = [asset];
+
+    address[] availableRewards = getRewardsByAsset(asset);
+    require getAvailableRewardsCount(asset) == 1;
+
+    address[] rewardList = getRewardsList();
+    require getRewardsListLength() == 1;
+
+    address reward = rewardList[0];
+
+    require availableRewards[0] == rewardList[0];
+    require getAvailableRewardsCount(asset) == 1;
+
+    uint256 _balance = Reward.balanceOf(e,to);
+
+    address[] rewardListOutput ; uint256[] claimedAmounts;
+    rewardListOutput,claimedAmounts = claimAllRewards(e,assets,to);
+
+    uint256 balance_ = Reward.balanceOf(e,to);
+
+    assert to != TransferStrategy => to_mathint(balance_) == _balance + claimedAmounts[0],
+        "user rewards should increase after claimAllRewards";
+
+}
+
+
 
 // Rules - ClaimRewards unit tests
 rule claimRewardsSingle (
@@ -469,9 +535,11 @@ rule only_claim_functions_can_decrease_accrued_rewards(address user,address rewa
 
 }
 
-
-
-
+// STATUS: NOT VERIFIED
+// Property: Adding already added reward & asset should not increase list lengths
+// rule asset_and_reward_list_length_wont_increase( RewardsDataTypes.RewardsConfigInput[] rewardInputs) {
+//     assert false;
+// }
 
 /**************************************************
 *             HIGH LEVEL PROPERTIES               *
@@ -483,13 +551,22 @@ rule only_claim_functions_can_decrease_accrued_rewards(address user,address rewa
 // rule user_rewards_LEQ_emissions()
 
 
+
+
 // STATUS: NOT VERIFIED
 // Property: a user should get all rewards if he owns the whole totalSupply in the emissionsPeriod
 // Idea : configureAsset and makesure 
 
 
+
+
+
 // STATUS: NOT VERIFIED
 // Property: there shouldn't be a way where user has rewards but still get 0 rewards if tries to withdraw
+
+
+
+
 
 // STATUS: VERIFIED 
 // Property: claimedAmount should always be less than accrued rewards
@@ -637,3 +714,7 @@ rule no_double_claim_in_claimRewards(address asset,address to) {
     assert claimedAmount == 0,
         "Double claim should not be possible";
 }
+=======
+
+///////////////// Properties ///////////////////////
+>>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e

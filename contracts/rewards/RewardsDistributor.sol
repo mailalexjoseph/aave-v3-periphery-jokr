@@ -512,17 +512,21 @@ abstract contract RewardsDistributor is IRewardsDistributor {
     ) {
       return (oldIndex, oldIndex);
     }
-
-    uint256 currentTimestamp = block.timestamp > distributionEnd
-      ? distributionEnd
-      : block.timestamp;
-    uint256 timeDelta = currentTimestamp - lastUpdateTimestamp;
-    uint256 firstTerm = emissionPerSecond * timeDelta * assetUnit;
-    assembly {
-      firstTerm := div(firstTerm, totalSupply)
-    }
-    return (oldIndex, (firstTerm + oldIndex));
+    return (oldIndex, computeNewIndexChange(totalSupply, block.timestamp, lastUpdateTimestamp, distributionEnd, emissionPerSecond, assetUnit ) + oldIndex ) ;
   }
+  function computeNewIndexChange(uint256 totalSupply, uint256 block_timestamp, 
+            uint256 lastUpdateTimestamp, uint256 distributionEnd, 
+            uint256 emissionPerSecond, uint256 assetUnit ) public pure returns(uint256) {
+        uint256 currentTimestamp = block_timestamp > distributionEnd
+          ? distributionEnd
+          : block_timestamp;
+        uint256 timeDelta = currentTimestamp - lastUpdateTimestamp;
+        uint256 firstTerm = emissionPerSecond * timeDelta * assetUnit;
+        assembly {
+          firstTerm := div(firstTerm, totalSupply)
+        }
+        return  (firstTerm);
+    }
 
   /**
    * @dev Get user balances and total supply of all the assets specified by the assets parameter
