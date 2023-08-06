@@ -2,6 +2,7 @@ import "./ERC20_methods.spec";
 
 using DummyERC20_AToken as AToken;
 using DummyERC20_rewardToken as Reward;
+using TransferStrategyHarness as TransferStrategy;
 
 /////////////////// Methods ////////////////////////
 
