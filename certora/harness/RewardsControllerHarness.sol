@@ -5,6 +5,7 @@ import {RewardsController} from '../../contracts/rewards/RewardsController.sol';
 import {RewardsDataTypes} from '../../contracts/rewards/libraries/RewardsDataTypes.sol';
 import {IScaledBalanceToken} from '@aave/core-v3/contracts/interfaces/IScaledBalanceToken.sol';
 import {IEACAggregatorProxy} from '../../contracts/misc/interfaces/IEACAggregatorProxy.sol';
+import {IERC20} from '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/IERC20.sol';
 
 contract RewardsControllerHarness is RewardsController {
   constructor(address emissionManager) RewardsController(emissionManager) {}
@@ -134,6 +135,9 @@ contract RewardsControllerHarness is RewardsController {
 
   function getRewardsByAssetCount(address asset) external view returns(uint256) {
     return _assets[asset].availableRewardsCount;
+  }
+  function getRewardBalance(address reward, address user) external view returns (uint256) {
+    return IERC20(reward).balanceOf(user);
   }
 
 }

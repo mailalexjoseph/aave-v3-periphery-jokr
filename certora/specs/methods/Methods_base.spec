@@ -38,6 +38,7 @@ using DummyERC20_rewardToken as Reward;
         function setClaimer(address,address) external envfree;
         function isRewardEnabled(address reward) external returns(bool) envfree;
         function getRewardsByAssetCount(address asset) external returns(uint256) envfree;
+        function getRewardBalance(address,address) external returns (uint256) envfree;
 
          
         // AToken functions
