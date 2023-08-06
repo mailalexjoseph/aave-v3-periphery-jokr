@@ -251,7 +251,7 @@ rule claimAllRewardsUnitTest(address asset,address to) {
 }
 
 // Rules - ClaimRewards unit tests
-rule claimRewardSingle (
+rule claimRewardsSingle (
     env e,
     address asset,
     uint256 amount,
@@ -264,7 +264,7 @@ rule claimRewardSingle (
     require getAvailableRewardsCount(asset) == 1;
 
     uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards[0]);
-    
+
     uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards[0]);
 
     uint256 userRewardsAfter = getUserAccruedRewardsForAsset(e.msg.sender, assets[0], availableRewards[0]);
@@ -278,11 +278,43 @@ rule claimRewardSingle (
     assert amount != 0 && userRewardsBefore > amount =>
         expectedRewards == amount &&
         userRewardsAfter == assert_uint256(userRewardsBefore - amount);
+}
+
+rule claimRewardsShouldTransferRewards (
+    env e,
+    address asset,
+    uint256 amount,
+    address to
+) {
+    
+    address[] assets = [asset];
+
+    address[] availableRewards = getRewardsByAsset(asset);
+    require getAvailableRewardsCount(asset) == 1;
+    address transferStrategy = getTransferStrategy(availableRewards[0]);
+    require transferStrategy != to;
+
+    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards[0]);
+    uint256 userBalanceBefore = getRewardBalance(availableRewards[0], to);
+    uint256 vaultBalanceBefore = getRewardBalance(transferStrategy, to);
+    
+    
+    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards[0]);
+
+    uint256 userRewardsAfter = getUserAccruedRewardsForAsset(e.msg.sender, assets[0], availableRewards[0]);
+    uint256 userBalanceAfter = getRewardBalance(availableRewards[0], to);
+    uint256 vaultBalanceAfter = getRewardBalance(transferStrategy, to);
+
+    assert amount == 0 => expectedRewards == 0;
+
+    assert amount != 0 =>
+        userBalanceAfter == assert_uint256(userBalanceBefore + expectedRewards) &&
+        vaultBalanceAfter == assert_uint256(vaultBalanceBefore - expectedRewards);
 
 }
 
 // STATUS: TIMEOUT
-rule claimRewardMultiple (
+rule claimRewardsMultiple (
     env e,
     address asset1,
     address asset2,

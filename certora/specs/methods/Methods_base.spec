@@ -35,6 +35,7 @@ using DummyERC20_rewardToken as Reward;
         function isContract(address) external returns (bool) envfree;
         function getLatestAnswer(address) external returns (int256) envfree;
         function setClaimer(address,address) external envfree;
+        function getRewardBalance(address,address) external returns (uint256) envfree;
 
          
         // AToken functions
