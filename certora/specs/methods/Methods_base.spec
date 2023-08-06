@@ -30,6 +30,12 @@ using TransferStrategyHarness as TransferStrategy;
         function getRewardsListLength() external returns(uint256) envfree;
         function getAssetsList() external returns (address[] memory) envfree;
         function getAssetsListLength() external returns (uint256) envfree;
+        function setTransferStrategy(address,address) external envfree;
+        function setRewardOracle(address,address) external envfree;
+        function getRewardOracle(address) external returns(address) envfree;
+        function isContract(address) external returns (bool) envfree;
+        function getLatestAnswer(address) external returns (int256) envfree;
+        function setClaimer(address,address) external envfree;
 
          
         // AToken functions
@@ -42,7 +48,7 @@ using TransferStrategyHarness as TransferStrategy;
         function _.performTransfer(address, address, uint256) external => DISPATCHER(true);
 
         // Oracle - assume any value 
-        function _.latestAnswer() external => NONDET;
+        function _.latestAnswer() external => CONSTANT;
 
         //envfree functions
         function getUserAccruedRewards(address, address ) external returns(uint256) envfree; 
