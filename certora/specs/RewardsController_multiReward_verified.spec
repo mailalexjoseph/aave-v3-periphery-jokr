@@ -13,7 +13,7 @@ rule handleAction_unit_test_multi() {
     uint256 totalSupply;
     uint256 userBalance;
     address asset  = e.msg.sender;
-    address reward = getNthRewardByAsset(e.msg.sender,2);
+    address reward = getNthRewardByAsset(e.msg.sender,1);
 
     requireInvariant totalSupply_eq_sumAllBalanceAToken();
     require getAvailableRewardsCount(asset) == 2;

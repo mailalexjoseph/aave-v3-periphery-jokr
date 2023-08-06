@@ -2,7 +2,7 @@ import "./ERC20_methods.spec";
 
 using DummyERC20_AToken as AToken;
 using DummyERC20_rewardToken as Reward;
-using TransferStrategyHarness as TransferStrategy;
+
 
 /////////////////// Methods ////////////////////////
 
@@ -36,6 +36,8 @@ using TransferStrategyHarness as TransferStrategy;
         function isContract(address) external returns (bool) envfree;
         function getLatestAnswer(address) external returns (int256) envfree;
         function setClaimer(address,address) external envfree;
+        function isRewardEnabled(address reward) external returns(bool) envfree;
+        function getRewardsByAssetCount(address asset) external returns(uint256) envfree;
 
          
         // AToken functions
@@ -79,7 +81,7 @@ hook Sload uint128 val AToken._userState[KEY address a].balance STORAGE {
 ///////////////// INVARIANTS //////////////////////
 
 invariant totalSupply_eq_sumAllBalanceAToken()
-    to_mathint(AToken.totalSupply()) == sumAllBalanceAToken();
+   to_mathint(AToken.totalSupply()) == sumAllBalanceAToken();
 
 
 

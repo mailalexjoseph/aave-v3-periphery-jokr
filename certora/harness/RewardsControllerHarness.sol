@@ -81,6 +81,15 @@ contract RewardsControllerHarness is RewardsController {
     return _assets[asset].rewards[reward].emissionPerSecond;
   }
 
+  function configureAssetsSingle(
+    RewardsDataTypes.RewardsConfigInput memory rewardInput
+  ) external {
+    RewardsDataTypes.RewardsConfigInput[]
+      memory rewardsInput = new RewardsDataTypes.RewardsConfigInput[](1);
+    rewardsInput[0] = rewardInput;
+    this.configureAssets(rewardsInput);
+  }
+
   function configureAssetsHarness(
     RewardsDataTypes.RewardsConfigInput memory rewardInput1,
     RewardsDataTypes.RewardsConfigInput memory rewardInput2
@@ -117,6 +126,14 @@ contract RewardsControllerHarness is RewardsController {
 
   function getLatestAnswer(address rewardOracle) external view returns (int256) {
     return IEACAggregatorProxy(rewardOracle).latestAnswer();
+  }
+
+  function isRewardEnabled(address reward) external view returns(bool) {
+    return _isRewardEnabled[reward];
+  }
+
+  function getRewardsByAssetCount(address asset) external view returns(uint256) {
+    return _assets[asset].availableRewardsCount;
   }
 
 }

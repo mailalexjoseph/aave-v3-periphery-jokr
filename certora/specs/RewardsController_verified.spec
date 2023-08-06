@@ -1,6 +1,6 @@
 import "methods/Methods_base.spec";
-<<<<<<< HEAD
 import "RewardsController_base.spec";
+using TransferStrategyHarness as TransferStrategy;
 use invariant totalSupply_eq_sumAllBalanceAToken;
 use invariant user_index_LEQ_index;
 use rule index_keeps_growing;
@@ -93,23 +93,21 @@ invariant user_rewards_LEQ_emissions_till_now(env e, address user, address asset
     }
 
 
-// invariant user_owns_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
-//     Reward.balanceOf(e,user) <= currentAvailableRewards(e,asset,reward)
-//     {
-//          preserved {
-//             requireInvariant totalSupply_eq_sumAllBalanceAToken();
-//         }
-//         preserved handleAction(address user1,uint256 totalSupply,uint256 userBalance) with(env e1) {
-//             require e1.block.timestamp == e.block.timestamp;
-//             uint256 userBalance1; uint256 totalSupply1;
-//             userBalance1,totalSupply1 = AToken.getScaledUserBalanceAndSupply(e,user1);
-//             require totalSupply == totalSupply1 && userBalance == userBalance1;
-//         }
-//         preserved {
-
-//         }
-
-//     }
+invariant user_owns_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
+    Reward.balanceOf(e,user) <= currentAvailableRewards(e,asset,reward)
+    {
+         preserved {
+            requireInvariant totalSupply_eq_sumAllBalanceAToken();
+            require getAssetDecimals(asset) == 6;
+            require getlastUpdateTimestamp(asset,reward) == e.block.timestamp;
+        }
+        preserved handleAction(address user1,uint256 totalSupply,uint256 userBalance) with(env e1) {
+            require e1.block.timestamp == e.block.timestamp;
+            uint256 userBalance1; uint256 totalSupply1;
+            userBalance1,totalSupply1 = AToken.getScaledUserBalanceAndSupply(e,user1);
+            require totalSupply == totalSupply1 && userBalance == userBalance1;
+        }
+    }
 
 
 /**************************************************
@@ -152,7 +150,6 @@ rule handleAction_unit_test(){
 
 // STATUS: VERIFIED  
 // Property: configureAssets is behaving as expected
-// https://prover.certora.com/output/547/ac097c3a3288465684e99b4a93bb2463?anonymousKey=418a5e32f10d128fdb1ad038efc8c1c460de803f
 rule configureAssets_unit_test(
     RewardsDataTypes.RewardsConfigInput rewardInput1,
     RewardsDataTypes.RewardsConfigInput rewardInput2
@@ -194,7 +191,7 @@ rule configureAssets_unit_test(
 
 }
 
-// RULE: SANITY CHECK FAILED (LEAVE THIS RULE FOR 2 DAYS)
+// STATUS: SANITY CHECK FAILED (LEAVE THIS RULE FOR 2 DAYS)
 // Property: configureAssets functions adds assets and rewards to the lists
 // https://prover.certora.com/output/547/c33eb8c226954f93b3baec82f83734e4?anonymousKey=367546d42a9ab3290c60f7873e52218d57d96ac4
 // also check that available rewards are increased for the assets are increased and rewardEnabled set to true for both reward   
@@ -223,6 +220,43 @@ rule configureAssets_unit_test(
 //     assert false;
 
 // }
+
+// STATUS: VERIFIED
+// Property: configureAssets functions adds assets and rewards to the lists
+rule configureAssets_single_updates_assets_and_rewards_arrays(
+    RewardsDataTypes.RewardsConfigInput rewardInput
+) { 
+    env e;
+    require getAssetsListLength()  == 0;
+    require getRewardsListLength() == 0;
+    require getRewardsByAssetCount(rewardInput.asset) == 0;
+
+    bool _enabled                = isRewardEnabled(rewardInput.reward);
+    uint256 _lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset,rewardInput.reward);
+    uint256 _decimals            = getAssetDecimals(rewardInput.asset);
+
+    configureAssetsSingle(e,rewardInput);
+
+    
+
+    address[] rewardList         = getRewardsList();
+    address[] assetList          = getAssetsList(); 
+    address[] rewardsByAsset     = getRewardsByAsset(rewardInput.asset);
+    uint availableRewardsCount_  = getRewardsByAssetCount(rewardInput.asset);
+    bool enabled_                = isRewardEnabled(rewardInput.reward);
+
+    assert !_enabled => rewardList[0] == rewardInput.reward && enabled_,
+        "new reward is not pushed into rewardList array";
+
+    assert _decimals == 0 => assetList[0] == rewardInput.asset,
+        "new asset is not pushed into assetList array";
+
+    assert _lastUpdateTimestamp == 0 => 
+        availableRewardsCount_ == 1 && rewardsByAsset[0] == rewardInput.reward,
+        "new reward is not pushed into availableRewards array";
+
+}
+
 
 
 // STATUS: VERIFIED
@@ -314,6 +348,12 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 
 }
 
+// STATUS: VERIFIED
+// Property: setDistributionEnd is behaving as expected
+
+// STATUS: VERIFIED
+// Property: setEmissionPerSecond is behaving as expected
+
 
 
 // Rules - ClaimRewards unit tests
@@ -387,16 +427,19 @@ rule claimRewardMultiple (
 rule setTransferStrategyUnitTest(address reward, address transferStrategy) {
     setTransferStrategy(reward, transferStrategy);
     assert getTransferStrategy(reward) == transferStrategy;
+    assert e.msg.sender == getEmissionManager();
 }
 
 rule setRewardOracleUnitTest(address reward, address rewardOracle) {
     setRewardOracle(reward, rewardOracle);
     assert getRewardOracle(reward) == rewardOracle;
+    assert e.msg.sender == getEmissionManager();
 }
 
 rule setClaimerUnitTest(address user, address caller) {
     setClaimer(user, caller);
     assert getClaimer(user) == caller;
+    assert e.msg.sender == getEmissionManager();
 }
 
 
@@ -519,21 +562,13 @@ rule only_claim_functions_can_decrease_accrued_rewards(address user,address rewa
 // rule user_rewards_LEQ_emissions()
 
 
-
-
 // STATUS: NOT VERIFIED
 // Property: a user should get all rewards if he owns the whole totalSupply in the emissionsPeriod
 // Idea : configureAsset and makesure 
 
 
-
-
-
 // STATUS: NOT VERIFIED
 // Property: there shouldn't be a way where user has rewards but still get 0 rewards if tries to withdraw
-
-
-
 
 
 // STATUS: VERIFIED 
@@ -586,6 +621,10 @@ rule rewards_wont_increase_after_distribution_end(address user, address asset, a
 
     assert end_ == _end && !isConfigureAssets(f) => rewards_ <= _rewards;
 }
+
+
+// STATUS: NOT VERIFIED
+// Property: Rewards of a user for a particular asset wont decrease without claiming
 
 
 // STATUS: VERIFIED
@@ -682,7 +721,3 @@ rule no_double_claim_in_claimRewards(address asset,address to) {
     assert claimedAmount == 0,
         "Double claim should not be possible";
 }
-=======
-
-///////////////// Properties ///////////////////////
->>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e

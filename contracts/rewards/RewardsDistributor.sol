@@ -231,6 +231,7 @@ abstract contract RewardsDistributor is IRewardsDistributor {
    **/
   function _configureAssets(RewardsDataTypes.RewardsConfigInput[] memory rewardsInput) internal {
     for (uint256 i = 0; i < rewardsInput.length; i++) {
+      // Done
       if (_assets[rewardsInput[i].asset].decimals == 0) {
         //never initialized before, adding to the list of assets
         _assetsList.push(rewardsInput[i].asset);
@@ -252,6 +253,7 @@ abstract contract RewardsDistributor is IRewardsDistributor {
         _assets[rewardsInput[i].asset].availableRewardsCount++;
       }
 
+      // Done
       // Add reward address to global rewards list if still not enabled
       if (_isRewardEnabled[rewardsInput[i].reward] == false) {
         _isRewardEnabled[rewardsInput[i].reward] = true;
