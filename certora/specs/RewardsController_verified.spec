@@ -1,4 +1,5 @@
 import "methods/Methods_base.spec";
+<<<<<<< HEAD
 import "RewardsController_base.spec";
 use invariant totalSupply_eq_sumAllBalanceAToken;
 use invariant user_index_LEQ_index;
@@ -681,3 +682,7 @@ rule no_double_claim_in_claimRewards(address asset,address to) {
     assert claimedAmount == 0,
         "Double claim should not be possible";
 }
+=======
+
+///////////////// Properties ///////////////////////
+>>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e

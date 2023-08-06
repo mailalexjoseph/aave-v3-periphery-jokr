@@ -33,7 +33,7 @@ We will introduce several bugs in the smart contract, some of which are publicly
 
 | Contract | SLOC | Purpose | Libraries used |  
 | ----------- | ----------- | ----------- | ----------- |
-|[contracts/rewards/RewardsController.sol](https://github.com/Certora/aave-v3-periphery/blob/master/contracts/rewards/RewardsController.sol)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
+|[contracts/rewards/RewardsController.sol](https://github.com/Certora/aave-v3-periphery_contest/blob/master/contracts/rewards/RewardsController.sol)|[](#nowhere "(nSLOC:458, Lines:917)")|-|
 
 # Additional Context
 
@@ -124,14 +124,14 @@ For discrete injected bugs and real bugs the total number of points a bug is wor
 # Working Instructions for Formal Verification Contests
 ## Overview
 
-* Create a private fork of the [public repository](https://github.com/Certora/aave-v3-periphery/tree/master) and give access to judges.
-* Implement properties in the `certora-contest` branch.
+* Create a private fork of the [public repository](https://github.com/Certora/aave-v3-periphery_contest) and give access to judges.
+* Implement properties in the `certora` branch.
 * Set up all your conf files in the `certora/confs` directory to check the specification against the code.
-* Submit your work by creating a pull request from the `certora-contest` branch to the `main` branch.
+* Submit your work by creating a pull request from the `certora` branch to the `main` branch.
 
 ## Setup
 
-To ensure other participants will not copy your properties, create a private fork of [this repository](https://github.com/Certora/aave-v3-periphery/tree/master). 
+To ensure other participants will not copy your properties, create a private fork of [this repository](https://github.com/Certora/aave-v3-periphery_contest). 
 
 ### How to create a private fork
 Creating a private fork is fairly easy. To do so simply:
@@ -140,7 +140,7 @@ Creating a private fork is fairly easy. To do so simply:
 
 2. In your empty repository scroll all the way down and look for the "import code" button.
 
-3. In the central textbox paste [certora's public repository url](https://github.com/Certora/aave-v3-periphery/) and press the "Begin import" button.
+3. In the central textbox paste [certora's public repository url](https://github.com/Certora/aave-v3-periphery_contest) and press the "Begin import" button.
 
 And Voilà, you have a private fork!
 Now you can clone the repository to your local machine so that you'll be able to work:
@@ -186,17 +186,17 @@ git remote -v
     This last action should pull the code from the `certora-repo` remote and embed it into the branch you checked out to. You potentially need to sort out conflicts, but in general you code is now synced and ready to push to your private remote whenever you need to.
 
 You’ll need to sync 2 branches on your fork:
-* `certora-contest` - your working branch.
+* `certora` - your working branch.
 * `main` - a reference branch that should not be touched unless instructed otherwise.
 
 Make sure to grant read access to the judges `mailalexjoseph`, `tomerganor`, `nd-certora`, `gadi03`, `shoham-certora`, `nisnislevi`, `MichaelMorami` on GitHub.
 
 Add a repository secret to your repo named `CERTORAKEY` with the key that will be emailed to you once you sign up through Certora (link is in the contest details above).
 
-The forked repository will contain a `certora-contest` directory that consists of 4 sub-directories - `harnesses`, `conf`, `tests` and `specs`. These should contain the entire preliminary setup to allow you to start writing rules. Each sub-directory contains a different component of the verification project and may contain additional sub-directories to maintain organization. Try to keep a similar structure when adding new files.
+The forked repository will contain a `certora` directory that consists of 4 sub-directories - `harnesses`, `conf`, `tests` and `specs`. These should contain the entire preliminary setup to allow you to start writing rules. Each sub-directory contains a different component of the verification project and may contain additional sub-directories to maintain organization. Try to keep a similar structure when adding new files.
 
 ### Setting Up The Project
-In order to compile the contracts you'll need to install some packages using npm. Follow [info.md](./info.md)'s "Getting started" section for instructions.
+In order to compile the contracts you'll need to install some packages using npm. Follow [info.md](./info.md)'s "Getting started" section for instructions. Please note that the contracts require solc8.10. if you use solc-select, you don't use solc-select, you'll have to add `"solc": "solc8.10"` in all your conf files
 
 ## Participation 
 

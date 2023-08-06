@@ -3,7 +3,11 @@ name: certora-bug-injection
 on:
   pull_request:
     branches:
+<<<<<<< HEAD
       - master
+=======
+      - main
+>>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e
 
   workflow_dispatch:
 
@@ -58,9 +62,12 @@ jobs:
           chmod +x solc-static-linux
           sudo mv solc-static-linux /usr/local/bin/solc8.10
 
+<<<<<<< HEAD
       - name: Install npm packages
         run: npm i
 
+=======
+>>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e
       - name: Verify rule ${{ matrix.rule }}
         run: |	          
           git apply --allow-empty ${{ matrix.patch }}

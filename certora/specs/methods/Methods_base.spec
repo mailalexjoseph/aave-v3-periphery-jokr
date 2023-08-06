@@ -53,6 +53,8 @@ using TransferStrategyHarness as TransferStrategy;
         //envfree functions
         function getUserAccruedRewards(address, address ) external returns(uint256) envfree; 
         function getClaimer(address) external returns (address) envfree;
+        function getlastUpdateTimestamp(address asset, address reward) external  returns (uint256) envfree;
+        function getAssetDecimals(address asset) external returns (uint8) envfree;
     }
 
 ///////////////// DEFINITIONS //////////////////////
