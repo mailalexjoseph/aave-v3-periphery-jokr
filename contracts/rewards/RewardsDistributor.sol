@@ -236,7 +236,7 @@ abstract contract RewardsDistributor is IRewardsDistributor {
         //never initialized before, adding to the list of assets
         _assetsList.push(rewardsInput[i].asset);
       }
-
+      // @audit not verified
       uint256 decimals = _assets[rewardsInput[i].asset].decimals = IERC20Detailed(
         rewardsInput[i].asset
       ).decimals();

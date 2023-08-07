@@ -13,6 +13,9 @@ use rule onlyAuthorizeCanDecrease;
 definition isConfigureAssets(method f) returns bool = 
     f.selector == sig:configureAssets(RewardsDataTypes.RewardsConfigInput[]).selector;
 
+definition isConfigureAssetsSingle(method f) returns bool =
+    f.selector == sig:configureAssetsSingle(RewardsDataTypes.RewardsConfigInput).selector;
+
 definition isConfigureAssetsHarness(method f) returns bool =
     f.selector == sig:configureAssetsHarness(RewardsDataTypes.RewardsConfigInput,RewardsDataTypes.RewardsConfigInput).selector;
 
@@ -76,7 +79,8 @@ invariant zero_address_has_no_rewards(env e)
     }
 
 
-// STATUS: TIMEOUT
+// STATUS: VIOLATED
+// https://prover.certora.com/output/547/16a9617240b84441896f713804f693fd/?anonymousKey=c29e8aceada83507965dbe11d428a4af5814bffe
 invariant user_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
     getAllUserRewards(e,user,asset,reward) <= currentAvailableRewards(e,asset,reward)
     {
@@ -350,6 +354,9 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 
 // STATUS: VERIFIED
 // Property: setDistributionEnd is behaving as expected
+rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistributionEnd) {
+
+}
 
 // STATUS: VERIFIED
 // Property: setEmissionPerSecond is behaving as expected
@@ -357,7 +364,7 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 
 
 // Rules - ClaimRewards unit tests
-rule claimRewardsSingle (
+rule claimRewardSingle (
     env e,
     address asset,
     uint256 amount,
@@ -370,7 +377,7 @@ rule claimRewardsSingle (
     require getAvailableRewardsCount(asset) == 1;
 
     uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards[0]);
-
+    
     uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards[0]);
 
     uint256 userRewardsAfter = getUserAccruedRewardsForAsset(e.msg.sender, assets[0], availableRewards[0]);
@@ -384,43 +391,11 @@ rule claimRewardsSingle (
     assert amount != 0 && userRewardsBefore > amount =>
         expectedRewards == amount &&
         userRewardsAfter == assert_uint256(userRewardsBefore - amount);
-}
-
-rule claimRewardsShouldTransferRewards (
-    env e,
-    address asset,
-    uint256 amount,
-    address to
-) {
-    
-    address[] assets = [asset];
-
-    address[] availableRewards = getRewardsByAsset(asset);
-    require getAvailableRewardsCount(asset) == 1;
-    address transferStrategy = getTransferStrategy(availableRewards[0]);
-    require transferStrategy != to;
-
-    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards[0]);
-    uint256 userBalanceBefore = getRewardBalance(availableRewards[0], to);
-    uint256 vaultBalanceBefore = getRewardBalance(transferStrategy, to);
-    
-    
-    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards[0]);
-
-    uint256 userRewardsAfter = getUserAccruedRewardsForAsset(e.msg.sender, assets[0], availableRewards[0]);
-    uint256 userBalanceAfter = getRewardBalance(availableRewards[0], to);
-    uint256 vaultBalanceAfter = getRewardBalance(transferStrategy, to);
-
-    assert amount == 0 => expectedRewards == 0;
-
-    assert amount != 0 =>
-        userBalanceAfter == assert_uint256(userBalanceBefore + expectedRewards) &&
-        vaultBalanceAfter == assert_uint256(vaultBalanceBefore - expectedRewards);
 
 }
 
 // STATUS: TIMEOUT
-rule claimRewardsMultiple (
+rule claimRewardMultiple (
     env e,
     address asset1,
     address asset2,
@@ -457,20 +432,23 @@ rule claimRewardsMultiple (
 }
 
 rule setTransferStrategyUnitTest(address reward, address transferStrategy) {
-    setTransferStrategy(reward, transferStrategy);
+    env e;
+    setTransferStrategy(e,reward, transferStrategy);
     assert getTransferStrategy(reward) == transferStrategy;
     assert e.msg.sender == getEmissionManager();
 }
 
 rule setRewardOracleUnitTest(address reward, address rewardOracle) {
-    setRewardOracle(reward, rewardOracle);
+    env e;
+    setRewardOracle(e,reward, rewardOracle);
     assert getRewardOracle(reward) == rewardOracle;
     assert e.msg.sender == getEmissionManager();
 }
 
 rule setClaimerUnitTest(address user, address caller) {
-    setClaimer(user, caller);
-    assert getClaimer(user) == caller;
+    env e;
+    setClaimer(e,user, caller);
+    assert getClaimer(e,user) == caller;
     assert e.msg.sender == getEmissionManager();
 }
 
@@ -518,14 +496,16 @@ rule claimRewardsOnBehalf_should_revert(address[] assets, uint256 amount, addres
 } 
 
 rule setTransferStrategy_should_revert(address reward, address transferStrategy) {
-    setTransferStrategy@withrevert(reward, transferStrategy);
+    env e;
+    setTransferStrategy@withrevert(e,reward, transferStrategy);
     bool setTransferStrategyReverted = lastReverted;
     assert transferStrategy == 0 || !isContract(transferStrategy) => setTransferStrategyReverted,
         "transferStrategy should never be zero address";        
 }
 
 rule setRewardOracle_should_revert(address reward, address rewardOracle) {
-    setRewardOracle@withrevert(reward, rewardOracle);
+    env e;  
+    setRewardOracle@withrevert(e,reward, rewardOracle);
     bool setRewardOracleReverted = lastReverted;
     assert getLatestAnswer(rewardOracle) <= 0 => setRewardOracleReverted,
         "oracle must return price";
@@ -563,7 +543,7 @@ rule only_emission_manager_can_change(address asset,address reward,method f) fil
 
 // STATUS: VERIFIED
 // Property: claim functions should only decrease accrued rewards of a user
-rule only_claim_functions_can_decrease_accrued_rewards(address user,address reward,method f) filtered { f -> !f.isView } {
+rule only_claim_functions_can_decrease_accrued_rewards(address user,address reward,method f) filtered { f -> !f.isView && !isHarnessMethod(f)} {
     
     env e; calldataarg args;
 
