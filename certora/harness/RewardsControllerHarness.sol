@@ -23,6 +23,7 @@ contract RewardsControllerHarness is RewardsController {
     return uint256(_assets[asset].availableRewardsCount);
   }
 
+  // dup
   function getUserAccruedRewards(
     address user,
     address asset,
@@ -140,4 +141,15 @@ contract RewardsControllerHarness is RewardsController {
     return IERC20(reward).balanceOf(user);
   }
 
+  function getUserAssetBalance(address[] calldata assets, address user)
+    external
+    view
+    returns (uint256)
+  {
+    return _getUserAssetBalances(assets, user)[0].userBalance;
+  }
+
+  function getScaledTotalSupply(address asset) external view returns (uint256) {
+    return IScaledBalanceToken(asset).scaledTotalSupply();
+  }
 }

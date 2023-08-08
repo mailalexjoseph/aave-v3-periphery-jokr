@@ -36,7 +36,10 @@ using DummyERC20_rewardToken as Reward;
         function isRewardEnabled(address reward) external returns(bool) envfree;
         function getRewardsByAssetCount(address asset) external returns(uint256) envfree;
         function getRewardBalance(address,address) external returns (uint256) envfree;
-
+        function getUserAssetBalance(address[], address) external returns (uint256) envfree;
+        function getAssetDecimals(address) external returns(uint8) envfree;
+        function getScaledTotalSupply(address) external returns(uint256) envfree;
+      
          
         // AToken functions
         function _.getScaledUserBalanceAndSupply(address) external => DISPATCHER(true);

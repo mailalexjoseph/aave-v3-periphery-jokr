@@ -354,9 +354,9 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 
 // STATUS: VERIFIED
 // Property: setDistributionEnd is behaving as expected
-rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistributionEnd) {
+// rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistributionEnd) {
 
-}
+// }
 
 // STATUS: VERIFIED
 // Property: setEmissionPerSecond is behaving as expected
@@ -364,7 +364,7 @@ rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistrib
 
 
 // Rules - ClaimRewards unit tests
-rule claimRewardSingle (
+rule claimRewardsSingle (
     env e,
     address asset,
     uint256 amount,
@@ -395,7 +395,7 @@ rule claimRewardSingle (
 }
 
 // STATUS: TIMEOUT
-rule claimRewardMultiple (
+rule claimRewardsMultiple (
     env e,
     address asset1,
     address asset2,
@@ -430,6 +430,84 @@ rule claimRewardMultiple (
         userRewardsAfter == 0;
 
 }
+
+rule getUserRewards_unit_test (
+    env e,
+    address asset,
+    address user,
+    address reward
+) {
+    address[] assets = [asset];
+    require getAssetDecimals(asset) == 8;
+
+    uint256 userBalance = getUserAssetBalance(assets, user);
+
+    uint256 unclaimedRewards = getUserAccruedRewards(user, asset, reward);
+
+    uint256 userIndex = getUserAssetIndex(user, asset, reward);
+    uint256 oldIndex; uint256 reserveIndex;
+    oldIndex, reserveIndex = getAssetIndex(e, asset, reward);
+    mathint result = userBalance * (reserveIndex - userIndex);
+    mathint assetUnit = 10^getAssetDecimals(asset);
+    mathint pendingRewards = result / assetUnit;
+
+    uint256 expectedRewards = getUserRewards(e, assets, user, reward);
+
+    assert userBalance == 0 => expectedRewards == unclaimedRewards;
+    assert userBalance != 0 =>  expectedRewards == assert_uint256(unclaimedRewards + pendingRewards);
+
+}
+
+rule getAssetIndex_uint_test (
+    env e,
+    address asset,
+    address reward
+) {
+    require getAssetDecimals(asset) == 8;
+
+    uint256 oldIndex; uint256 distributionEnd;  uint256 emissionPerSecond; uint256 lastUpdateTimestamp;
+    oldIndex, emissionPerSecond, lastUpdateTimestamp, distributionEnd = getRewardsData(asset, reward);
+    mathint totalSupply = getScaledTotalSupply(asset);
+    mathint assetUnit = 10^getAssetDecimals(asset);
+    uint256 currentTimeStamp;
+
+    if (e.block.timestamp > distributionEnd){
+        currentTimeStamp = distributionEnd;
+    }
+    else {
+        currentTimeStamp = e.block.timestamp;
+    }
+    
+    mathint timeDelta = currentTimeStamp - lastUpdateTimestamp;
+    mathint firstTerm = emissionPerSecond * timeDelta * assetUnit;
+
+    mathint computedNewIndex;
+    if (totalSupply == 0){
+        computedNewIndex = oldIndex;
+    }
+    else {
+        computedNewIndex =  (firstTerm / totalSupply) + oldIndex;
+    }
+    
+
+    uint256 oldIndexExpected; uint256 newIndexExpected;
+    oldIndexExpected, newIndexExpected = getAssetIndex(e, asset, reward);
+
+    assert (
+        emissionPerSecond == 0 ||
+        totalSupply == 0 ||
+        lastUpdateTimestamp == e.block.timestamp ||
+        lastUpdateTimestamp >= distributionEnd
+    ) => oldIndexExpected == oldIndex && newIndexExpected == oldIndex;
+
+    assert (
+        emissionPerSecond != 0 &&
+        totalSupply != 0 &&
+        lastUpdateTimestamp != e.block.timestamp &&
+        lastUpdateTimestamp < distributionEnd
+    ) => oldIndexExpected == oldIndex && newIndexExpected == assert_uint256(computedNewIndex);
+}
+
 
 rule setTransferStrategyUnitTest(address reward, address transferStrategy) {
     env e;
