@@ -195,73 +195,44 @@ rule configureAssets_unit_test(
 
 }
 
-// STATUS: SANITY CHECK FAILED (LEAVE THIS RULE FOR 2 DAYS)
-// Property: configureAssets functions adds assets and rewards to the lists
-// https://prover.certora.com/output/547/c33eb8c226954f93b3baec82f83734e4?anonymousKey=367546d42a9ab3290c60f7873e52218d57d96ac4
-// also check that available rewards are increased for the assets are increased and rewardEnabled set to true for both reward   
-// rule configureAssets_updates_assets_and_rewards_arrays(
-//     RewardsDataTypes.RewardsConfigInput rewardInput1,
-//     RewardsDataTypes.RewardsConfigInput rewardInput2
-// ) { 
-//     env e;
-//     // require getAssetsListLength()  == 0;
-//     // require getRewardsListLength() == 0;
+rule configureAssets_updates_asset_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
+    require getAssetsListLength() == 0;
+    uint8 assetDecimals = getAssetDecimals(rewardInput.asset);
 
-//     // require rewardInput1.asset  != rewardInput2.asset;
-//     // require rewardInput1.reward != rewardInput2.reward;
+    configureAssetsSingle(e, rewardInput);
 
-//     configureAssetsHarness(e,rewardInput1,rewardInput2);
+    address[] assetList = getAssetsList(); 
+    uint256 length = getAssetsListLength();
 
-//     // address[] rewardList = getRewardsList();
-//     // address[] assetList  = getAssetsList(); 
+    assert assetDecimals == 0 <=> length == 1 && assetList[0] == rewardInput.asset;
+}
 
-//     // assert rewardList[0] == rewardInput1.reward && rewardList[1] == rewardInput2.reward,
-//     //     "new rewards are not pushed into rewardList array";
-
-//     // assert assetList[0] == rewardInput1.asset && assetList[1] == rewardInput2.asset,
-//     //     "new assets are not pushed into assetList array";
-
-//     assert false;
-
-// }
-
-// STATUS: VERIFIED
-// Property: configureAssets functions adds assets and rewards to the lists
-rule configureAssets_single_updates_assets_and_rewards_arrays(
-    RewardsDataTypes.RewardsConfigInput rewardInput
-) { 
-    env e;
-    require getAssetsListLength()  == 0;
+rule configureAssets_updates_reward_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
     require getRewardsListLength() == 0;
-    require getRewardsByAssetCount(rewardInput.asset) == 0;
+    bool enabledBefore = isRewardEnabled(rewardInput.reward);
 
-    bool _enabled                = isRewardEnabled(rewardInput.reward);
-    uint256 _lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset,rewardInput.reward);
-    uint256 _decimals            = getAssetDecimals(rewardInput.asset);
+    configureAssetsSingle(e, rewardInput);
 
-    configureAssetsSingle(e,rewardInput);
+    address[] rewardList = getRewardsList(); 
+    uint256 length = getRewardsListLength();
+    bool enabledAfter = isRewardEnabled(rewardInput.reward);
 
-    
-
-    address[] rewardList         = getRewardsList();
-    address[] assetList          = getAssetsList(); 
-    address[] rewardsByAsset     = getRewardsByAsset(rewardInput.asset);
-    uint availableRewardsCount_  = getRewardsByAssetCount(rewardInput.asset);
-    bool enabled_                = isRewardEnabled(rewardInput.reward);
-
-    assert !_enabled => rewardList[0] == rewardInput.reward && enabled_,
-        "new reward is not pushed into rewardList array";
-
-    assert _decimals == 0 => assetList[0] == rewardInput.asset,
-        "new asset is not pushed into assetList array";
-
-    assert _lastUpdateTimestamp == 0 => 
-        availableRewardsCount_ == 1 && rewardsByAsset[0] == rewardInput.reward,
-        "new reward is not pushed into availableRewards array";
+    assert enabledBefore == false <=> length == 1 && rewardList[0] == rewardInput.reward;
+    assert enabledAfter == true;
 
 }
 
+rule configureAssets_updates_available_rewards (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
+    require getAvailableRewardsCount(rewardInput.asset) == 0;
+    uint256 lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset, rewardInput.reward);
+    
+    configureAssetsSingle(e, rewardInput);
 
+    address[] availableRewards = getRewardsByAsset(rewardInput.asset); 
+    uint256 length = getAvailableRewardsCount(rewardInput.asset);
+
+    assert lastUpdateTimestamp == 0 <=> length == 1 && availableRewards[0] == rewardInput.reward;
+}
 
 // STATUS: VERIFIED
 rule claimAllRewards_unit_test(address asset,address to) {
