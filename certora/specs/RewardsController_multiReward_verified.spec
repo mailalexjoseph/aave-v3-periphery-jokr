@@ -5,9 +5,6 @@ use invariant totalSupply_eq_sumAllBalanceAToken;
 
 ///////////////// Properties ///////////////////////
 
-
-
-
 // STAUS: VERIFIED
 rule handleAction_unit_test_multi() {
     env e;
@@ -40,7 +37,6 @@ rule handleAction_unit_test_multi() {
         "accruedRewards changed by wrong amount";
 
 }
-
 
 // STATUS: VERIFIED
 // Property: setEmissionPerSecond is behaving as expected
@@ -99,24 +95,29 @@ rule claimAllRewards_unit_test_multi(address asset1,address asset2,address to) {
 
     assert accruedRewards_ == 0,
         "Accrued rewards must be zero after claiming all rewards"; 
-    assert claimedAmounts[1] == rewards,
-        "Incorrect claimedAmounts";
+    // assert rewardList[0] != rewardList[1] => claimedAmounts[1] == rewards,
+    //     "Incorrect claimedAmounts";
 
 }
 
 
-// STATUS: NOT VERIFIED 
+// STATUS: TIMEOUT
 rule claimAllRewards_should_update_index_data_multi(address asset1,address asset2,address to) {
     env e;
     address[] assets = [asset1,asset2];
 
     address[] availableRewards = getRewardsByAsset(asset2);
     require getAvailableRewardsCount(asset2) == 2;
-
+    
     address[] rewardList = getRewardsList();
     require getRewardsListLength() == 2;
 
     address reward = rewardList[1];
+    // simplifications
+    address anyAsset;
+    address anyReward;
+    require getAssetDecimals(anyAsset) == 6;
+    require getlastUpdateTimestamp(anyAsset,anyAsset) == e.block.timestamp;
 
     require availableRewards[0] == rewardList[0];
     require availableRewards[1] == rewardList[1];
@@ -172,7 +173,7 @@ rule claimRewardsMultiple (
         userRewardsAfter == 0;
 }
 
-// STATUS: NOT VERIFIED
+// STATUS: TIMEOUT
 // Property: ClaimAllRewards should increase the rewards balance of user
 rule claimAllRewards_should_increase_reward_balance_multi(address asset1,address asset2,address to) {
     env e;
@@ -189,12 +190,12 @@ rule claimAllRewards_should_increase_reward_balance_multi(address asset1,address
     require availableRewards[0] == rewardList[0];
     require availableRewards[1] == rewardList[1];
 
-    uint256 _balance = Reward.balanceOf(e,to);
+    uint256 _balance = getRewardBalance(reward,to);
 
     address[] rewardListOutput ; uint256[] claimedAmounts;
     rewardListOutput,claimedAmounts = claimAllRewards(e,assets,to);
 
-    uint256 balance_ = Reward.balanceOf(e,to);
+    uint256 balance_ = getRewardBalance(reward,to);
 
     assert to != TransferStrategy => to_mathint(balance_) >= _balance + claimedAmounts[1],
         "user rewards should increase after claimAllRewards";

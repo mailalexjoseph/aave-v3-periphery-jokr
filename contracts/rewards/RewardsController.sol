@@ -285,12 +285,10 @@ contract RewardsController is RewardsDistributor, VersionedInitializable, IRewar
     for (uint256 i = 0; i < assets.length; i++) {
       address asset = assets[i];
       for (uint256 j = 0; j < rewardsListLength; j++) {
-
         if (rewardsList[j] == address(0)) {
           rewardsList[j] = _rewardsList[j];
         }
-        // uint256 rewardAmount = _assets[asset].rewards[rewardsList[j]].usersData[user].accrued;
-        uint256 rewardAmount = 0;
+        uint256 rewardAmount = _assets[asset].rewards[rewardsList[j]].usersData[user].accrued;
         if (rewardAmount != 0) {
           claimedAmounts[j] += rewardAmount;
           _assets[asset].rewards[rewardsList[j]].usersData[user].accrued = 0;

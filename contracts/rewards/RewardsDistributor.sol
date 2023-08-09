@@ -194,30 +194,23 @@ abstract contract RewardsDistributor is IRewardsDistributor {
     address[] calldata rewards,
     uint88[] calldata newEmissionsPerSecond
   ) external override onlyEmissionManager {
-    // Covered
     require(rewards.length == newEmissionsPerSecond.length, 'INVALID_INPUT');
-    // Loop covered
     for (uint256 i = 0; i < rewards.length; i++) {
       RewardsDataTypes.AssetData storage assetConfig = _assets[asset];
       RewardsDataTypes.RewardData storage rewardConfig = _assets[asset].rewards[rewards[i]];
       uint256 decimals = assetConfig.decimals;
-
-      // covered
       require(
         decimals != 0 && rewardConfig.lastUpdateTimestamp != 0,
         'DISTRIBUTION_DOES_NOT_EXIST'
       );
-      
-      // covered
+
       (uint256 newIndex, ) = _updateRewardData(
         rewardConfig,
         IScaledBalanceToken(asset).scaledTotalSupply(),
         10**decimals
       );
 
-
       uint256 oldEmissionPerSecond = rewardConfig.emissionPerSecond;
-      // covered
       rewardConfig.emissionPerSecond = newEmissionsPerSecond[i];
 
       emit AssetConfigUpdated(
@@ -238,12 +231,11 @@ abstract contract RewardsDistributor is IRewardsDistributor {
    **/
   function _configureAssets(RewardsDataTypes.RewardsConfigInput[] memory rewardsInput) internal {
     for (uint256 i = 0; i < rewardsInput.length; i++) {
-      // Done
       if (_assets[rewardsInput[i].asset].decimals == 0) {
         //never initialized before, adding to the list of assets
         _assetsList.push(rewardsInput[i].asset);
       }
-      // @audit not verified
+
       uint256 decimals = _assets[rewardsInput[i].asset].decimals = IERC20Detailed(
         rewardsInput[i].asset
       ).decimals();
@@ -260,7 +252,6 @@ abstract contract RewardsDistributor is IRewardsDistributor {
         _assets[rewardsInput[i].asset].availableRewardsCount++;
       }
 
-      // Done
       // Add reward address to global rewards list if still not enabled
       if (_isRewardEnabled[rewardsInput[i].reward] == false) {
         _isRewardEnabled[rewardsInput[i].reward] = true;
@@ -316,7 +307,6 @@ abstract contract RewardsDistributor is IRewardsDistributor {
       rewardData.lastUpdateTimestamp = block.timestamp.toUint32();
     } else {
       rewardData.lastUpdateTimestamp = block.timestamp.toUint32();
-
     }
 
     return (newIndex, indexUpdated);
@@ -385,7 +375,6 @@ abstract contract RewardsDistributor is IRewardsDistributor {
           totalSupply,
           assetUnit
         );
-
 
         (uint256 rewardsAccrued, bool userDataUpdated) = _updateUserData(
           rewardData,
@@ -492,9 +481,9 @@ abstract contract RewardsDistributor is IRewardsDistributor {
     uint256 assetUnit
   ) internal pure returns (uint256) {
     uint256 result = userBalance * (reserveIndex - userIndex);
-    // assembly {
-    //   result := div(result, assetUnit)
-    // }
+    assembly {
+      result := div(result, assetUnit)
+    }
     return result;
   }
 
