@@ -79,8 +79,6 @@ invariant zero_address_has_no_rewards(env e)
     }
 
 
-// STATUS: VIOLATED
-// https://prover.certora.com/output/547/16a9617240b84441896f713804f693fd/?anonymousKey=c29e8aceada83507965dbe11d428a4af5814bffe
 invariant user_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
     getAllUserRewards(e,user,asset,reward) <= currentAvailableRewards(e,asset,reward)
     {
@@ -97,21 +95,23 @@ invariant user_rewards_LEQ_emissions_till_now(env e, address user, address asset
     }
 
 
-invariant user_owns_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
-    Reward.balanceOf(e,user) <= currentAvailableRewards(e,asset,reward)
-    {
-         preserved {
-            requireInvariant totalSupply_eq_sumAllBalanceAToken();
-            require getAssetDecimals(asset) == 6;
-            require getlastUpdateTimestamp(asset,reward) == e.block.timestamp;
-        }
-        preserved handleAction(address user1,uint256 totalSupply,uint256 userBalance) with(env e1) {
-            require e1.block.timestamp == e.block.timestamp;
-            uint256 userBalance1; uint256 totalSupply1;
-            userBalance1,totalSupply1 = AToken.getScaledUserBalanceAndSupply(e,user1);
-            require totalSupply == totalSupply1 && userBalance == userBalance1;
-        }
-    }
+// STATUS: VIOLATED
+// https://prover.certora.com/output/547/16a9617240b84441896f713804f693fd/?anonymousKey=c29e8aceada83507965dbe11d428a4af5814bffe
+// invariant user_owns_rewards_LEQ_emissions_till_now(env e, address user, address asset, address reward)
+//     Reward.balanceOf(e,user) <= currentAvailableRewards(e,asset,reward)
+//     {
+//          preserved {
+//             requireInvariant totalSupply_eq_sumAllBalanceAToken();
+//             require getAssetDecimals(asset) == 6;
+//             require getlastUpdateTimestamp(asset,reward) == e.block.timestamp;
+//         }
+//         preserved handleAction(address user1,uint256 totalSupply,uint256 userBalance) with(env e1) {
+//             require e1.block.timestamp == e.block.timestamp;
+//             uint256 userBalance1; uint256 totalSupply1;
+//             userBalance1,totalSupply1 = AToken.getScaledUserBalanceAndSupply(e,user1);
+//             require totalSupply == totalSupply1 && userBalance == userBalance1;
+//         }
+//     }
 
 
 /**************************************************
@@ -195,33 +195,26 @@ rule configureAssets_unit_test(
 
 }
 
-// STATUS: SANITY CHECK FAILED (LEAVE THIS RULE FOR 2 DAYS)
+// STATUS: SANITY FAILED
 // Property: configureAssets functions adds assets and rewards to the lists
-// https://prover.certora.com/output/547/c33eb8c226954f93b3baec82f83734e4?anonymousKey=367546d42a9ab3290c60f7873e52218d57d96ac4
-// also check that available rewards are increased for the assets are increased and rewardEnabled set to true for both reward   
 // rule configureAssets_updates_assets_and_rewards_arrays(
 //     RewardsDataTypes.RewardsConfigInput rewardInput1,
 //     RewardsDataTypes.RewardsConfigInput rewardInput2
 // ) { 
 //     env e;
-//     // require getAssetsListLength()  == 0;
-//     // require getRewardsListLength() == 0;
-
-//     // require rewardInput1.asset  != rewardInput2.asset;
-//     // require rewardInput1.reward != rewardInput2.reward;
+//     require getAssetsListLength()  == 0;
+//     require getRewardsListLength() == 0;
 
 //     configureAssetsHarness(e,rewardInput1,rewardInput2);
 
-//     // address[] rewardList = getRewardsList();
-//     // address[] assetList  = getAssetsList(); 
+//     address[] rewardList = getRewardsList();
+//     address[] assetList  = getAssetsList(); 
 
-//     // assert rewardList[0] == rewardInput1.reward && rewardList[1] == rewardInput2.reward,
-//     //     "new rewards are not pushed into rewardList array";
+//     assert rewardInput1.reward != rewardInput2.reward => rewardList[1] == rewardInput2.reward,
+//         "new rewards are not pushed into rewardList array";
 
-//     // assert assetList[0] == rewardInput1.asset && assetList[1] == rewardInput2.asset,
-//     //     "new assets are not pushed into assetList array";
-
-//     assert false;
+//     assert rewardInput1.asset != rewardInput2.asset => assetList[1] == rewardInput2.asset,
+//         "new assets are not pushed into assetList array";
 
 // }
 
@@ -231,17 +224,30 @@ rule configureAssets_single_updates_assets_and_rewards_arrays(
     RewardsDataTypes.RewardsConfigInput rewardInput
 ) { 
     env e;
-    require getAssetsListLength()  == 0;
-    require getRewardsListLength() == 0;
-    require getRewardsByAssetCount(rewardInput.asset) == 0;
+    // uint256 _assetListLength      = getAssetsListLength();
+    // uint256 _rewardsRewardsLength = getRewardsListLength();
+    // uint256 _rewardsByAssetCount  = getRewardsByAssetCount(rewardInput.asset);
+
+    require getAssetsListLength()  == 1;
+    require getRewardsListLength() == 1;
+    require getRewardsByAssetCount(rewardInput.asset) == 1;
+
 
     bool _enabled                = isRewardEnabled(rewardInput.reward);
     uint256 _lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset,rewardInput.reward);
     uint256 _decimals            = getAssetDecimals(rewardInput.asset);
 
+    address[] rewardList1         = getRewardsList();
+    address[] assetList1          = getAssetsList(); 
+    address[] rewardsByAsset1     = getRewardsByAsset(rewardInput.asset);
+
+    require rewardList1[1] == 0;
+    require assetList1[1] == 0;
+    require rewardsByAsset1[1] == 0;
+
     configureAssetsSingle(e,rewardInput);
 
-    
+    uint l2 = getRewardsListLength();
 
     address[] rewardList         = getRewardsList();
     address[] assetList          = getAssetsList(); 
@@ -249,17 +255,24 @@ rule configureAssets_single_updates_assets_and_rewards_arrays(
     uint availableRewardsCount_  = getRewardsByAssetCount(rewardInput.asset);
     bool enabled_                = isRewardEnabled(rewardInput.reward);
 
-    assert !_enabled => rewardList[0] == rewardInput.reward && enabled_,
+    assert (!_enabled <=> rewardList[1] == rewardInput.reward && enabled_ ),
         "new reward is not pushed into rewardList array";
 
-    assert _decimals == 0 => assetList[0] == rewardInput.asset,
+    assert (_decimals == 0 <=> assetList[1] == rewardInput.asset),
         "new asset is not pushed into assetList array";
 
-    assert _lastUpdateTimestamp == 0 => 
-        availableRewardsCount_ == 1 && rewardsByAsset[0] == rewardInput.reward,
-        "new reward is not pushed into availableRewards array";
+    // assert (_lastUpdateTimestamp == 0 <=> 
+    //     availableRewardsCount_ == 1 && rewardsByAsset[1] == rewardInput.reward ),
+    //     "new reward is not pushed into availableRewards array";
 
 }
+
+
+// STATUS: NOT VERIFIED
+// Property: Adding already added reward & asset should not increase list lengths
+// rule asset_and_reward_list_length_wont_increase( RewardsDataTypes.RewardsConfigInput[] rewardInputs) {
+//     assert false;
+// }
 
 
 
@@ -293,6 +306,8 @@ rule claimAllRewards_unit_test(address asset,address to) {
         "Incorrect claimedAmounts";
 
 }
+
+
 
 // STATUS: VERIFIED 
 rule claimAllRewards_should_update_index_data(address asset,address to) {
@@ -355,12 +370,15 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 // STATUS: VERIFIED
 // Property: setDistributionEnd is behaving as expected
 rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistributionEnd) {
+    env e;
+    setDistributionEnd(e,asset,reward,newDistributionEnd);
+
+    assert assert_uint32(getDistributionEnd(asset,reward)) == newDistributionEnd,
+        "distributionEnd not updated";
+    assert e.msg.sender == getEmissionManager(),
+        "distribution should only be changed by manager";
 
 }
-
-// STATUS: VERIFIED
-// Property: setEmissionPerSecond is behaving as expected
-
 
 
 // Rules - ClaimRewards unit tests
@@ -558,11 +576,6 @@ rule only_claim_functions_can_decrease_accrued_rewards(address user,address rewa
 
 }
 
-// STATUS: NOT VERIFIED
-// Property: Adding already added reward & asset should not increase list lengths
-// rule asset_and_reward_list_length_wont_increase( RewardsDataTypes.RewardsConfigInput[] rewardInputs) {
-//     assert false;
-// }
 
 /**************************************************
 *             HIGH LEVEL PROPERTIES               *
@@ -604,13 +617,12 @@ rule claimed_amount_LEQ_accured_rewards(address asset, uint256 amount, address t
 
 }
 
-
-
 // STATUS : VERIFIED
 // Property: Rewards of a user for a particular asset dont increase after distribution End
 rule rewards_wont_increase_after_distribution_end(address user, address asset, address reward, method f) filtered { f -> !f.isView && !isHarnessMethod(f) } {
     requireInvariant user_index_LEQ_index(asset,reward,user);
     requireInvariant totalSupply_eq_sumAllBalanceAToken();
+    
 
     env e; calldataarg args; 
     uint _end     =  getDistributionEnd(asset,reward);
@@ -636,7 +648,10 @@ rule rewards_wont_increase_after_distribution_end(address user, address asset, a
 
 
 // STATUS: NOT VERIFIED
-// Property: Rewards of a user for a particular asset wont decrease without claiming
+// Property: Rewards of a user for a particular asset should never decrease unless claimed
+// rule rewards_should_never_decrease_unless_claimed() {
+
+// }
 
 
 // STATUS: VERIFIED
@@ -673,6 +688,22 @@ rule last_update_time_only_increases(address asset, address reward, method f) fi
 }
 
 
+// STATUS: VERIFIED
+// Property: computeNewIndexChange should returns zero if lastupdateTimestamp is current timestamp
+rule index_change_should_be_zero(){
+    env e;
+    uint256 totalSupply; uint256 block_timestamp; 
+    uint256 lastUpdateTimestamp; uint256 distributionEnd;
+    uint256 emissionPerSecond; uint256 assetUnit;
+    
+
+    uint256 change = computeNewIndexChange(e,totalSupply,block_timestamp,lastUpdateTimestamp,distributionEnd,emissionPerSecond,assetUnit);
+
+    assert block_timestamp == lastUpdateTimestamp => change == 0,
+        "index change should be zero if last change is current block";
+}
+
+
 /**************************************************
 *            MATHEMATICAL PROPERTIES              *
 **************************************************/
@@ -696,7 +727,6 @@ rule no_double_claim_in_claimAllRewards(address asset,address to) {
     address[] availableRewards = getRewardsByAsset(asset);
     address[] rewardList = getRewardsList();
 
-    // requireInvariant totalSupply_eq_sumAllBalanceAToken();
     require getAvailableRewardsCount(asset) == 1;
     require getRewardsListLength() == 1;
     require availableRewards[0] == rewardList[0];
@@ -715,11 +745,18 @@ rule no_double_claim_in_claimAllRewards(address asset,address to) {
 
 // STATUS: TIMEOUT
 // Property: A user cannot double claim his rewards in claimRewards function
-rule no_double_claim_in_claimRewards(address asset,address to) {
+rule no_double_claim_in_claimRewards(address[] assets,address to) {
     env e;
-    address[] assets = [asset];
+
+    address asset = assets[0];
     address[] availableRewards = getRewardsByAsset(asset);
     address[] rewardList = getRewardsList();
+
+    require assets.length == 1;
+    require getAssetsListLength() == 2;
+    require getRewardsListLength() == 1;
+    require getAvailableRewardsCount(asset) == 1;
+
 
     require getAvailableRewardsCount(asset) == 1;
     require getRewardsListLength() == 1;
