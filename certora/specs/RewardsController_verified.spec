@@ -195,86 +195,44 @@ rule configureAssets_unit_test(
 
 }
 
-// STATUS: SANITY FAILED
-// Property: configureAssets functions adds assets and rewards to the lists
-// rule configureAssets_updates_assets_and_rewards_arrays(
-//     RewardsDataTypes.RewardsConfigInput rewardInput1,
-//     RewardsDataTypes.RewardsConfigInput rewardInput2
-// ) { 
-//     env e;
-//     require getAssetsListLength()  == 0;
-//     require getRewardsListLength() == 0;
+rule configureAssets_updates_asset_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
+    require getAssetsListLength() == 0;
+    uint8 assetDecimals = getAssetDecimals(rewardInput.asset);
 
-//     configureAssetsHarness(e,rewardInput1,rewardInput2);
+    configureAssetsSingle(e, rewardInput);
 
-//     address[] rewardList = getRewardsList();
-//     address[] assetList  = getAssetsList(); 
+    address[] assetList = getAssetsList(); 
+    uint256 length = getAssetsListLength();
 
-//     assert rewardInput1.reward != rewardInput2.reward => rewardList[1] == rewardInput2.reward,
-//         "new rewards are not pushed into rewardList array";
+    assert assetDecimals == 0 <=> length == 1 && assetList[0] == rewardInput.asset;
+}
 
-//     assert rewardInput1.asset != rewardInput2.asset => assetList[1] == rewardInput2.asset,
-//         "new assets are not pushed into assetList array";
+rule configureAssets_updates_reward_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
+    require getRewardsListLength() == 0;
+    bool enabledBefore = isRewardEnabled(rewardInput.reward);
 
-// }
+    configureAssetsSingle(e, rewardInput);
 
-// STATUS: VERIFIED
-// Property: configureAssets functions adds assets and rewards to the lists
-rule configureAssets_single_updates_assets_and_rewards_arrays(
-    RewardsDataTypes.RewardsConfigInput rewardInput
-) { 
-    env e;
-    // uint256 _assetListLength      = getAssetsListLength();
-    // uint256 _rewardsRewardsLength = getRewardsListLength();
-    // uint256 _rewardsByAssetCount  = getRewardsByAssetCount(rewardInput.asset);
+    address[] rewardList = getRewardsList(); 
+    uint256 length = getRewardsListLength();
+    bool enabledAfter = isRewardEnabled(rewardInput.reward);
 
-    require getAssetsListLength()  == 1;
-    require getRewardsListLength() == 1;
-    require getRewardsByAssetCount(rewardInput.asset) == 1;
-
-
-    bool _enabled                = isRewardEnabled(rewardInput.reward);
-    uint256 _lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset,rewardInput.reward);
-    uint256 _decimals            = getAssetDecimals(rewardInput.asset);
-
-    address[] rewardList1         = getRewardsList();
-    address[] assetList1          = getAssetsList(); 
-    address[] rewardsByAsset1     = getRewardsByAsset(rewardInput.asset);
-
-    require rewardList1[1] == 0;
-    require assetList1[1] == 0;
-    require rewardsByAsset1[1] == 0;
-
-    configureAssetsSingle(e,rewardInput);
-
-    uint l2 = getRewardsListLength();
-
-    address[] rewardList         = getRewardsList();
-    address[] assetList          = getAssetsList(); 
-    address[] rewardsByAsset     = getRewardsByAsset(rewardInput.asset);
-    uint availableRewardsCount_  = getRewardsByAssetCount(rewardInput.asset);
-    bool enabled_                = isRewardEnabled(rewardInput.reward);
-
-    assert (!_enabled <=> rewardList[1] == rewardInput.reward && enabled_ ),
-        "new reward is not pushed into rewardList array";
-
-    assert (_decimals == 0 <=> assetList[1] == rewardInput.asset),
-        "new asset is not pushed into assetList array";
-
-    // assert (_lastUpdateTimestamp == 0 <=> 
-    //     availableRewardsCount_ == 1 && rewardsByAsset[1] == rewardInput.reward ),
-    //     "new reward is not pushed into availableRewards array";
+    assert enabledBefore == false <=> length == 1 && rewardList[0] == rewardInput.reward;
+    assert enabledAfter == true;
 
 }
 
+rule configureAssets_updates_available_rewards (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
+    require getAvailableRewardsCount(rewardInput.asset) == 0;
+    uint256 lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset, rewardInput.reward);
+    
+    configureAssetsSingle(e, rewardInput);
 
-// STATUS: NOT VERIFIED
-// Property: Adding already added reward & asset should not increase list lengths
-// rule asset_and_reward_list_length_wont_increase( RewardsDataTypes.RewardsConfigInput[] rewardInputs) {
-//     assert false;
-// }
+    address[] availableRewards = getRewardsByAsset(rewardInput.asset); 
+    uint256 length = getAvailableRewardsCount(rewardInput.asset);
 
-
+    assert lastUpdateTimestamp == 0 <=> length == 1 && availableRewards[0] == rewardInput.reward;
+}
 
 // STATUS: VERIFIED
 rule claimAllRewards_unit_test(address asset,address to) {
@@ -382,7 +340,7 @@ rule setDistributionEnd_unit_test(address asset,address reward,uint32 newDistrib
 
 
 // Rules - ClaimRewards unit tests
-rule claimRewardSingle (
+rule claimRewardsSingle (
     env e,
     address asset,
     uint256 amount,
@@ -413,7 +371,7 @@ rule claimRewardSingle (
 }
 
 // STATUS: TIMEOUT
-rule claimRewardMultiple (
+rule claimRewardsMultiple (
     env e,
     address asset1,
     address asset2,
@@ -448,6 +406,84 @@ rule claimRewardMultiple (
         userRewardsAfter == 0;
 
 }
+
+rule getUserRewards_unit_test (
+    env e,
+    address asset,
+    address user,
+    address reward
+) {
+    address[] assets = [asset];
+    require getAssetDecimals(asset) == 8;
+
+    uint256 userBalance = getUserAssetBalance(assets, user);
+
+    uint256 unclaimedRewards = getUserAccruedRewards(user, asset, reward);
+
+    uint256 userIndex = getUserAssetIndex(user, asset, reward);
+    uint256 oldIndex; uint256 reserveIndex;
+    oldIndex, reserveIndex = getAssetIndex(e, asset, reward);
+    mathint result = userBalance * (reserveIndex - userIndex);
+    mathint assetUnit = 10^getAssetDecimals(asset);
+    mathint pendingRewards = result / assetUnit;
+
+    uint256 expectedRewards = getUserRewards(e, assets, user, reward);
+
+    assert userBalance == 0 => expectedRewards == unclaimedRewards;
+    assert userBalance != 0 =>  expectedRewards == assert_uint256(unclaimedRewards + pendingRewards);
+
+}
+
+rule getAssetIndex_uint_test (
+    env e,
+    address asset,
+    address reward
+) {
+    require getAssetDecimals(asset) == 8;
+
+    uint256 oldIndex; uint256 distributionEnd;  uint256 emissionPerSecond; uint256 lastUpdateTimestamp;
+    oldIndex, emissionPerSecond, lastUpdateTimestamp, distributionEnd = getRewardsData(asset, reward);
+    mathint totalSupply = getScaledTotalSupply(asset);
+    mathint assetUnit = 10^getAssetDecimals(asset);
+    uint256 currentTimeStamp;
+
+    if (e.block.timestamp > distributionEnd){
+        currentTimeStamp = distributionEnd;
+    }
+    else {
+        currentTimeStamp = e.block.timestamp;
+    }
+    
+    mathint timeDelta = currentTimeStamp - lastUpdateTimestamp;
+    mathint firstTerm = emissionPerSecond * timeDelta * assetUnit;
+
+    mathint computedNewIndex;
+    if (totalSupply == 0){
+        computedNewIndex = oldIndex;
+    }
+    else {
+        computedNewIndex =  (firstTerm / totalSupply) + oldIndex;
+    }
+    
+
+    uint256 oldIndexExpected; uint256 newIndexExpected;
+    oldIndexExpected, newIndexExpected = getAssetIndex(e, asset, reward);
+
+    assert (
+        emissionPerSecond == 0 ||
+        totalSupply == 0 ||
+        lastUpdateTimestamp == e.block.timestamp ||
+        lastUpdateTimestamp >= distributionEnd
+    ) => oldIndexExpected == oldIndex && newIndexExpected == oldIndex;
+
+    assert (
+        emissionPerSecond != 0 &&
+        totalSupply != 0 &&
+        lastUpdateTimestamp != e.block.timestamp &&
+        lastUpdateTimestamp < distributionEnd
+    ) => oldIndexExpected == oldIndex && newIndexExpected == assert_uint256(computedNewIndex);
+}
+
 
 rule setTransferStrategyUnitTest(address reward, address transferStrategy) {
     env e;
