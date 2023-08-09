@@ -75,9 +75,9 @@ jobs:
       matrix:
         patch: ${{ fromJson(needs.list-patches.outputs.matrix) }} 
         rule:
-            - certora/conf/verifyRewardsController_verified.conf --rules setTransferStrategyUnitTest setRewardOracleUnitTest setClaimerUnitTest claimAllRewards_should_revert claimAllRewardsOnBehalf_should_revert claimRewards_should_revert claimRewardsOnBehalf_should_revert setTransferStrategy_should_revert setRewardOracle_should_revert  claimAllRewards_unit_test claimAllRewards_should_update_index_data claimAllRewards_should_increase_reward_balance
-            - certora/conf/verifyRewardsController_verified.conf --rules configureAssets_unit_test configureAssets_updates_asset_list configureAssets_updates_reward_list configureAssets_updates_available_rewards handleAction_unit_test last_update_time_only_increases claimed_amount_LEQ_accured_rewards
-            - certora/conf/verifyRewardsController_verified.conf --rules getUserRewards_unit_test getAssetIndex_uint_test claimRewardsSingle only_emission_manager_can_change only_claim_functions_can_decrease_accrued_rewards index_change_should_be_zero
-            - certora/conf/verifyRewardsController_verified.conf --rules no_double_claim_in_claimAllRewards
-            - certora/conf/verifyRewardsController_verified.conf --rules rewards_wont_increase_after_distribution_end
-            - certora/conf/verifyRewardsController_verified.conf --rules user_index_keeps_growing
+            - certora/conf/verifyRewardsController_verified.conf --rule setTransferStrategyUnitTest setRewardOracleUnitTest setClaimerUnitTest claimAllRewards_should_revert claimAllRewardsOnBehalf_should_revert claimRewards_should_revert claimRewardsOnBehalf_should_revert setTransferStrategy_should_revert setRewardOracle_should_revert  claimAllRewards_unit_test claimAllRewards_should_update_index_data claimAllRewards_should_increase_reward_balance
+            - certora/conf/verifyRewardsController_verified.conf --rule configureAssets_unit_test configureAssets_updates_asset_list configureAssets_updates_reward_list configureAssets_updates_available_rewards handleAction_unit_test last_update_time_only_increases claimed_amount_LEQ_accured_rewards
+            - certora/conf/verifyRewardsController_verified.conf --rule getUserRewards_unit_test getAssetIndex_uint_test claimRewardsSingle only_emission_manager_can_change only_claim_functions_can_decrease_accrued_rewards index_change_should_be_zero
+            - certora/conf/verifyRewardsController_verified.conf --rule no_double_claim_in_claimAllRewards
+            - certora/conf/verifyRewardsController_verified.conf --rule rewards_wont_increase_after_distribution_end
+            - certora/conf/verifyRewardsController_verified.conf --rule user_index_keeps_growing
