@@ -60,7 +60,52 @@ using DummyERC20_rewardToken as Reward;
         function getAssetDecimals(address asset) external returns (uint8) envfree;
     }
 
-///////////////// DEFINITIONS //////////////////////
+
+
+/**************************************************
+*                 DEFINITIONS                     *
+**************************************************/
+definition isConfigureAssets(method f) returns bool = 
+    f.selector == sig:configureAssets(RewardsDataTypes.RewardsConfigInput[]).selector;
+
+definition isConfigureAssetsSingle(method f) returns bool =
+    f.selector == sig:configureAssetsSingle(RewardsDataTypes.RewardsConfigInput).selector;
+
+definition isConfigureAssetsHarness(method f) returns bool =
+    f.selector == sig:configureAssetsHarness(RewardsDataTypes.RewardsConfigInput,RewardsDataTypes.RewardsConfigInput).selector;
+
+definition isClaimRewards(method f) returns bool =
+    f.selector == sig:claimRewards(address[],uint256,address,address).selector;
+
+definition isClaimRewardsOnBehalf(method f) returns bool =
+    f.selector == sig:claimRewardsOnBehalf(address[],uint256,address,address,address).selector;
+
+definition isClaimRewardsToSelf(method f) returns bool =
+    f.selector == sig:claimRewardsToSelf(address[],uint256,address).selector;
+
+definition isClaimAllRewards(method f) returns bool =
+    f.selector == sig:claimAllRewards(address[],address).selector;
+
+definition isClaimAllRewardsOnBehalf(method f) returns bool =
+    f.selector == sig:claimAllRewardsOnBehalf(address[],address,address).selector;
+
+definition isClaimAllRewardsToSelf(method f) returns bool =
+    f.selector == sig:claimAllRewardsToSelf(address[]).selector;
+
+definition isSetEmissionPerSecond(method f) returns bool =
+    f.selector == sig:setEmissionPerSecond(address,address[],uint88[]).selector;
+
+definition isSetDistributionEnd(method f) returns bool =
+    f.selector == sig:setDistributionEnd(address,address,uint32).selector;
+
+definition isHarnessMethod(method f) returns bool = 
+   isConfigureAssetsHarness(f) || isConfigureAssetsSingle(f);
+ 
+definition claimMethods(method f) returns bool =
+    isClaimRewards(f)    || isClaimRewardsOnBehalf(f)    || isClaimRewardsToSelf(f) ||
+    isClaimAllRewards(f) || isClaimAllRewardsOnBehalf(f) || isClaimAllRewardsToSelf(f);
+
+
 
 ////////////////// FUNCTIONS //////////////////////
 
