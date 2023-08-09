@@ -98,8 +98,11 @@ definition isSetEmissionPerSecond(method f) returns bool =
 definition isSetDistributionEnd(method f) returns bool =
     f.selector == sig:setDistributionEnd(address,address,uint32).selector;
 
+definition isTransferRewards(method f) returns bool =
+    f.selector == sig:transferRewards(address,address,uint256).selector;
+
 definition isHarnessMethod(method f) returns bool = 
-   isConfigureAssetsHarness(f) || isConfigureAssetsSingle(f);
+   isConfigureAssetsHarness(f) || isConfigureAssetsSingle(f) || isTransferRewards(f);
  
 definition claimMethods(method f) returns bool =
     isClaimRewards(f)    || isClaimRewardsOnBehalf(f)    || isClaimRewardsToSelf(f) ||

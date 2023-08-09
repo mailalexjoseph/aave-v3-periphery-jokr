@@ -6,7 +6,6 @@ use invariant user_index_LEQ_index;
 use rule index_keeps_growing;
 use rule onlyAuthorizeCanDecrease;
 
-
 /**************************************************
 *                 INVARIANTS                      *
 **************************************************/
@@ -523,6 +522,20 @@ rule setRewardOracle_should_revert(address reward, address rewardOracle) {
     bool setRewardOracleReverted = lastReverted;
     assert getLatestAnswer(rewardOracle) <= 0 => setRewardOracleReverted,
         "oracle must return price";
+}
+
+rule transferRewards_should_revert(address to, address reward, uint256 amount) {
+    env e;
+    address transferStrategy = getTransferStrategy(reward);
+    require transferStrategy != to;
+
+    uint256 balanceBefore = Reward.balanceOf(e, to);
+    transferRewards@withrevert(e, to, reward, amount);
+    bool transferRewardsReverted = lastReverted;
+    uint256 balanceAfter = Reward.balanceOf(e, to);
+
+    assert amount != 0 && balanceAfter == balanceBefore <=> transferRewardsReverted,
+        "transfer should revert on failure";
 }
 
 /**************************************************

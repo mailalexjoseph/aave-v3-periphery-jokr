@@ -32,6 +32,10 @@ contract RewardsControllerHarness is RewardsController {
     return _assets[asset].rewards[reward].usersData[user].accrued;
   }
 
+  function updateDataMultipleHarness(address user, address[] calldata assets) external {
+    _updateDataMultiple(user, _getUserAssetBalances(assets, user));
+  }
+
   function getAllUserRewards(
     address user,
     address asset,
@@ -151,5 +155,13 @@ contract RewardsControllerHarness is RewardsController {
 
   function getScaledTotalSupply(address asset) external view returns (uint256) {
     return IScaledBalanceToken(asset).scaledTotalSupply();
+  }
+
+  function transferRewards(
+    address to,
+    address reward,
+    uint256 amount
+  ) external {
+    _transferRewards(to, reward, amount);
   }
 }

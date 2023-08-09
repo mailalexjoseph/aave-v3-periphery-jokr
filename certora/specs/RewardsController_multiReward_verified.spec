@@ -137,7 +137,7 @@ rule claimAllRewards_should_update_index_data_multi(address asset1,address asset
 
 
 
-// STATUS: TIMEOUT
+// // STATUS: TIMEOUT
 rule claimRewardsMultiple (
     env e,
     address asset1,
@@ -174,6 +174,41 @@ rule claimRewardsMultiple (
 }
 
 // STATUS: TIMEOUT
+rule claimRewardsDividedMultiple (
+    env e,
+    address asset1,
+    address asset2,
+    uint256 amount,
+    address to
+) { 
+    address[] assets = [asset1, asset2];
+    address user = e.msg.sender;
+
+    address[] availableRewards1 = getRewardsByAsset(asset1);
+    require getAvailableRewardsCount(asset1) == 1;
+
+    address[] availableRewards2 = getRewardsByAsset(asset2);
+    require getAvailableRewardsCount(asset2) == 1;
+
+    require availableRewards1[0] == availableRewards2[0];
+
+    updateDataMultipleHarness(e, user, assets);
+
+    uint256 asset1AccruedBefore = getUserAccruedRewardsForAsset(user, asset1, availableRewards1[0]);
+    uint256 asset2AccruedBefore = getUserAccruedRewardsForAsset(user, asset2, availableRewards1[0]);
+        
+    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards1[0]);
+
+    uint256 asset1AccruedAfter = getUserAccruedRewardsForAsset(user, asset1, availableRewards1[0]);
+    uint256 asset2AccruedAfter = getUserAccruedRewardsForAsset(user, asset2, availableRewards1[0]);
+
+    assert  amount == 0 => expectedRewards == 0;
+
+    assert amount != 0 && amount < asset1AccruedBefore => asset1AccruedAfter == 0 && expectedRewards == amount;
+
+}
+
+// STATUS: NOT VERIFIED
 // Property: ClaimAllRewards should increase the rewards balance of user
 rule claimAllRewards_should_increase_reward_balance_multi(address asset1,address asset2,address to) {
     env e;
