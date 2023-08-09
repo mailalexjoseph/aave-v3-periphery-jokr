@@ -80,3 +80,42 @@ rule claimAllRewards_unit_test_multi(address asset1,address asset2,address to) {
     assert getlastUpdateTimestamp(asset2,reward) == e.block.timestamp,
         "Incorrect lastUpdateTimestamp";
 }
+
+
+
+// STATUS: TIMEOUT
+rule claimRewardsMultiple (
+    env e,
+    address asset1,
+    address asset2,
+    uint256 amount,
+    address to
+) { 
+    address[] assets = [asset1, asset2];
+
+    address[] availableRewards1 = getRewardsByAsset(asset1);
+    require getAvailableRewardsCount(asset1) == 1;
+
+    address[] availableRewards2 = getRewardsByAsset(asset2);
+    require getAvailableRewardsCount(asset2) == 1;
+
+    require availableRewards1[0] == availableRewards2[0];
+
+    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
+        
+    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards1[0]);
+
+    uint256 userRewardsAfter = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
+
+
+    assert  amount == 0 => expectedRewards == 0;
+
+    assert amount != 0 && amount < userRewardsBefore =>
+        expectedRewards == amount &&
+        userRewardsAfter == assert_uint256(userRewardsBefore - amount);
+
+    assert amount != 0 && amount >= userRewardsBefore => 
+        expectedRewards == userRewardsBefore &&
+        userRewardsAfter == 0;
+
+}

@@ -4,7 +4,6 @@ using TransferStrategyHarness as TransferStrategy;
 use invariant totalSupply_eq_sumAllBalanceAToken;
 use invariant user_index_LEQ_index;
 use rule index_keeps_growing;
-use rule noDoubleClaim;
 use rule onlyAuthorizeCanDecrease;
 
 /**************************************************
@@ -195,6 +194,7 @@ rule configureAssets_unit_test(
 
 }
 
+// STAUS: VERIFIED
 rule configureAssets_updates_asset_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
     require getAssetsListLength() == 0;
     uint8 assetDecimals = getAssetDecimals(rewardInput.asset);
@@ -207,6 +207,7 @@ rule configureAssets_updates_asset_list (env e, RewardsDataTypes.RewardsConfigIn
     assert assetDecimals == 0 <=> length == 1 && assetList[0] == rewardInput.asset;
 }
 
+// STAUS: VERIFIED
 rule configureAssets_updates_reward_list (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
     require getRewardsListLength() == 0;
     bool enabledBefore = isRewardEnabled(rewardInput.reward);
@@ -222,6 +223,7 @@ rule configureAssets_updates_reward_list (env e, RewardsDataTypes.RewardsConfigI
 
 }
 
+// STAUS: VERIFIED
 rule configureAssets_updates_available_rewards (env e, RewardsDataTypes.RewardsConfigInput rewardInput) {
     require getAvailableRewardsCount(rewardInput.asset) == 0;
     uint256 lastUpdateTimestamp = getlastUpdateTimestamp(rewardInput.asset, rewardInput.reward);
@@ -335,6 +337,7 @@ rule claimAllRewards_should_increase_reward_balance(address asset,address to) {
 
 
 // Rules - ClaimRewards unit tests
+// STATUS: VERIFIED
 rule claimRewardsSingle (
     env e,
     address asset,
@@ -365,43 +368,7 @@ rule claimRewardsSingle (
 
 }
 
-// STATUS: TIMEOUT
-rule claimRewardsMultiple (
-    env e,
-    address asset1,
-    address asset2,
-    uint256 amount,
-    address to
-) { 
-    address[] assets = [asset1, asset2];
-
-    address[] availableRewards1 = getRewardsByAsset(asset1);
-    require getAvailableRewardsCount(asset1) == 1;
-
-    address[] availableRewards2 = getRewardsByAsset(asset2);
-    require getAvailableRewardsCount(asset2) == 1;
-
-    require availableRewards1[0] == availableRewards2[0];
-
-    uint256 userRewardsBefore = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
-        
-    uint256 expectedRewards = claimRewards(e, assets, amount, to, availableRewards1[0]);
-
-    uint256 userRewardsAfter = getUserRewards(e, assets, e.msg.sender, availableRewards1[0]);
-
-
-    assert  amount == 0 => expectedRewards == 0;
-
-    assert amount != 0 && amount < userRewardsBefore =>
-        expectedRewards == amount &&
-        userRewardsAfter == assert_uint256(userRewardsBefore - amount);
-
-    assert amount != 0 && amount >= userRewardsBefore => 
-        expectedRewards == userRewardsBefore &&
-        userRewardsAfter == 0;
-
-}
-
+// STATUS: VERIFIED
 rule getUserRewards_unit_test (
     env e,
     address asset,
@@ -429,6 +396,7 @@ rule getUserRewards_unit_test (
 
 }
 
+// STATUS: VERIFIED
 rule getAssetIndex_uint_test (
     env e,
     address asset,

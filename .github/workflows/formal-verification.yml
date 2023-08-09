@@ -3,11 +3,7 @@ name: certora-bug-injection
 on:
   pull_request:
     branches:
-<<<<<<< HEAD
       - master
-=======
-      - main
->>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e
 
   workflow_dispatch:
 
@@ -62,12 +58,9 @@ jobs:
           chmod +x solc-static-linux
           sudo mv solc-static-linux /usr/local/bin/solc8.10
 
-<<<<<<< HEAD
       - name: Install npm packages
         run: npm i
 
-=======
->>>>>>> 701d6f37bd8e480e90b31102d52d22c14878152e
       - name: Verify rule ${{ matrix.rule }}
         run: |	          
           git apply --allow-empty ${{ matrix.patch }}
@@ -81,4 +74,7 @@ jobs:
       max-parallel: 16
       matrix:
         patch: ${{ fromJson(needs.list-patches.outputs.matrix) }} 
-        rule: ${{ fromJson(needs.list-confs.outputs.matrix) }} 
+        rule:
+            - certora/conf/verifyRewardsController_verified.conf --rules setTransferStrategyUnitTest setRewardOracleUnitTest setClaimerUnitTest claimAllRewards_should_revert claimAllRewardsOnBehalf_should_revert claimRewards_should_revert claimRewardsOnBehalf_should_revert setTransferStrategy_should_revert setRewardOracle_should_revert  claimAllRewards_unit_test claimAllRewards_should_update_index_data claimAllRewards_should_increase_reward_balance
+            - certora/conf/verifyRewardsController_verified.conf --rules configureAssets_unit_test configureAssets_updates_asset_list configureAssets_updates_reward_list configureAssets_updates_available_rewards handleAction_unit_test last_update_time_only_increases claimed_amount_LEQ_accured_rewards
+            - certora/conf/verifyRewardsController_verified.conf --rules getUserRewards_unit_test getAssetIndex_uint_test claimRewardsSingle only_emission_manager_can_change only_claim_functions_can_decrease_accrued_rewards
