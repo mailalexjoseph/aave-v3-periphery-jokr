@@ -3,7 +3,7 @@ import "methods/Methods_base.spec";
 ///////////////// Properties ///////////////////////
 
     // Property: Reward index monotonically increase
-    rule index_keeps_growing(address asset, address reward, method f) filtered { f -> !f.isView } {
+    rule index_keeps_growing(address asset, address reward, method f) filtered { f -> !f.isView && !isHarnessMethod(f) } {
         uint256 _index = getAssetRewardIndex(asset, reward);
 
         env e; calldataarg args;
@@ -16,7 +16,14 @@ import "methods/Methods_base.spec";
 
     // Property: User index cannot surpass reward index
     invariant user_index_LEQ_index(address asset, address reward, address user)
-        getUserAssetIndex(user, asset, reward) <= getAssetRewardIndex(asset, reward);
+        getUserAssetIndex(user, asset, reward) <= getAssetRewardIndex(asset, reward)
+        filtered {
+            f -> !isHarnessMethod(f)
+        }
+        
+        
+        
+
 
 
     // check this rule for every change in setup to make sure all is reachable 
@@ -40,7 +47,7 @@ import "methods/Methods_base.spec";
     }
 
     // Property: only an authorized user or the user itself can cause a reduction in accrued rewards for this user
-    rule onlyAuthorizeCanDecrease(method f) filtered { f -> !f.isView } {
+    rule onlyAuthorizeCanDecrease(method f) filtered { f -> !f.isView && !isHarnessMethod(f) } {
 
         address user; address reward;
         uint256 before = getUserAccruedRewards(user, reward);

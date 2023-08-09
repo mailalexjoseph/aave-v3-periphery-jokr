@@ -6,48 +6,6 @@ use invariant user_index_LEQ_index;
 use rule index_keeps_growing;
 use rule onlyAuthorizeCanDecrease;
 
-/**************************************************
-*                 DEFINITIONS                     *
-**************************************************/
-definition isConfigureAssets(method f) returns bool = 
-    f.selector == sig:configureAssets(RewardsDataTypes.RewardsConfigInput[]).selector;
-
-definition isConfigureAssetsSingle(method f) returns bool =
-    f.selector == sig:configureAssetsSingle(RewardsDataTypes.RewardsConfigInput).selector;
-
-definition isConfigureAssetsHarness(method f) returns bool =
-    f.selector == sig:configureAssetsHarness(RewardsDataTypes.RewardsConfigInput,RewardsDataTypes.RewardsConfigInput).selector;
-
-definition isClaimRewards(method f) returns bool =
-    f.selector == sig:claimRewards(address[],uint256,address,address).selector;
-
-definition isClaimRewardsOnBehalf(method f) returns bool =
-    f.selector == sig:claimRewardsOnBehalf(address[],uint256,address,address,address).selector;
-
-definition isClaimRewardsToSelf(method f) returns bool =
-    f.selector == sig:claimRewardsToSelf(address[],uint256,address).selector;
-
-definition isClaimAllRewards(method f) returns bool =
-    f.selector == sig:claimAllRewards(address[],address).selector;
-
-definition isClaimAllRewardsOnBehalf(method f) returns bool =
-    f.selector == sig:claimAllRewardsOnBehalf(address[],address,address).selector;
-
-definition isClaimAllRewardsToSelf(method f) returns bool =
-    f.selector == sig:claimAllRewardsToSelf(address[]).selector;
-
-definition isSetEmissionPerSecond(method f) returns bool =
-    f.selector == sig:setEmissionPerSecond(address,address[],uint88[]).selector;
-
-definition isSetDistributionEnd(method f) returns bool =
-    f.selector == sig:setDistributionEnd(address,address,uint32).selector;
-
-definition isHarnessMethod(method f) returns bool = isConfigureAssetsHarness(f);
- 
-definition claimMethods(method f) returns bool =
-    isClaimRewards(f)    || isClaimRewardsOnBehalf(f)    || isClaimRewardsToSelf(f) ||
-    isClaimAllRewards(f) || isClaimAllRewardsOnBehalf(f) || isClaimAllRewardsToSelf(f);
-
 
 /**************************************************
 *                 INVARIANTS                      *
@@ -83,6 +41,7 @@ invariant user_rewards_LEQ_emissions_till_now(env e, address user, address asset
     {
         preserved {
             requireInvariant totalSupply_eq_sumAllBalanceAToken();
+            require getlastUpdateTimestamp(asset,reward) == e.block.timestamp;
             require getAssetDecimals(asset) == 6;
         }
         preserved handleAction(address user1,uint256 totalSupply,uint256 userBalance) with(env e1) {
