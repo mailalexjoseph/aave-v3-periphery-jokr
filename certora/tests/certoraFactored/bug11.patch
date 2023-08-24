@@ -1,0 +1,13 @@
+diff --git a/contracts/rewards/RewardsDistributor.sol b/contracts/rewards/RewardsDistributor.sol
+index 2e0b8f1..193b7a5 100644
+--- a/contracts/rewards/RewardsDistributor.sol
++++ b/contracts/rewards/RewardsDistributor.sol
+@@ -512,7 +512,7 @@ abstract contract RewardsDistributor is IRewardsDistributor {
+     ) {
+       return (oldIndex, oldIndex);
+     }
+-    return (oldIndex, computeNewIndexChange(totalSupply, block.timestamp, lastUpdateTimestamp, distributionEnd, emissionPerSecond, assetUnit ) + oldIndex ) ;
++    return (oldIndex, oldIndex );
+   }
+   function computeNewIndexChange(uint256 totalSupply, uint256 block_timestamp, 
+             uint256 lastUpdateTimestamp, uint256 distributionEnd, 
