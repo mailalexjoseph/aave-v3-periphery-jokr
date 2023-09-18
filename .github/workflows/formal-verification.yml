@@ -75,4 +75,13 @@ jobs:
       max-parallel: 16
       matrix:
         patch: ${{ fromJson(needs.list-patches.outputs.matrix) }} 
-        rule: ${{ fromJson(needs.list-confs.outputs.matrix) }} 
+        rule: 
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_unit_test_multi
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_should_increase_reward_balance_multi
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule handleAction_unit_test_multi
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimRewardsDividedMultiple
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule totalSupply_eq_sumAllBalanceAToken
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimRewardsMultiple
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule setEmissionPerSecond_multi_unit_test
+            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_should_update_index_data_multi
+            
