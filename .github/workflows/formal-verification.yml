@@ -76,12 +76,17 @@ jobs:
       matrix:
         patch: ${{ fromJson(needs.list-patches.outputs.matrix) }} 
         rule: 
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_unit_test_multi
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_should_increase_reward_balance_multi
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule handleAction_unit_test_multi
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimRewardsDividedMultiple
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule totalSupply_eq_sumAllBalanceAToken
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimRewardsMultiple
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule setEmissionPerSecond_multi_unit_test
-            - certora/conf/verifyRewardsController_multiReward_verified.conf --rule claimAllRewards_should_update_index_data_multi
+            - certora/conf/verifyRewardsController_verified.conf --rule user_index_keeps_growing
+            - certora/conf/verifyRewardsController_verified.conf --rule claimAllRewards_unit_test
+            - certora/conf/verifyRewardsController_verified.conf --rule claimAllRewards_should_update_index_data
+            - certora/conf/verifyRewardsController_verified.conf --rule claimAllRewards_should_increase_reward_balance
+            - certora/conf/verifyRewardsController_verified.conf --rule claimRewardsSingle
+            - certora/conf/verifyRewardsController_verified.conf --rule handleAction_unit_test
+            - certora/conf/verifyRewardsController_verified.conf --rule user_rewards_LEQ_emissions_till_now
+            - certora/conf/verifyRewardsController_verified.conf --rule no_double_claim_in_claimRewards
+            - certora/conf/verifyRewardsController_verified.conf --rule rewards_wont_increase_after_distribution_end
+            - certora/conf/verifyRewardsController_verified.conf --rule no_double_claim_in_claimAllRewards
+            - certora/conf/verifyRewardsController_verified.conf --rule claimed_amount_LEQ_accured_rewards
+            - certora/conf/verifyRewardsController_verified.conf --rule claimRewardsShouldTransferRewards
+
             
